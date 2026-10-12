@@ -1,0 +1,162 @@
+:host {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+    min-height: 100vh;
+}
+
+/* ---------- Left brand panel ---------- */
+.brand {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    /* block is vertically centered in the panel */
+    padding: 48px 56px 48px 115px;
+    color: #fff;
+    background: linear-gradient(160deg, var(--blue-900) 0%, var(--blue-700) 55%, var(--blue-500) 100%);
+}
+
+/* decorative arcs (positions measured from the Figma frame) */
+.brand::before,
+.brand::after {
+    content: '';
+    position: absolute;
+    border: 1px solid rgb(255 255 255 / .12);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.brand::before {
+    width: 570px;
+    height: 570px;
+    top: -105px;
+    right: -285px;
+}
+
+.brand::after {
+    width: 480px;
+    height: 480px;
+    left: -240px;
+    bottom: -282px;
+}
+
+.brand-inner {
+    position: relative;
+    max-width: 460px;
+}
+
+.logo {
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: var(--blue-600);
+    font: 700 40px/1 var(--font);
+    padding-bottom: 6px;
+}
+
+h1 {
+    margin: 52px 0 30px;
+    font-size: 64px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -.03em;
+}
+
+.tagline {
+    margin: 0 0 70px;
+    font-size: 24px;
+    line-height: 1.6;
+    color: rgb(255 255 255 / .85);
+    max-width: 20em;
+}
+
+.features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 31px;
+}
+
+.features li {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.icon {
+    flex: none;
+    width: 53px;
+    height: 53px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: rgb(255 255 255 / .12);
+    color: #fff;
+}
+
+.features strong {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 26px;
+    margin-bottom: 6px;
+}
+
+.features span:not(.icon) {
+    display: block;
+    font-size: 16px;
+    line-height: 22px;
+    color: rgb(255 255 255 / .8);
+}
+
+/* ---------- Right content ---------- */
+.content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* form is vertically centered too */
+    padding: 48px 48px 59px;
+}
+
+.content-inner {
+    width: 100%;
+    max-width: 625px;
+}
+
+@media (max-width: 960px) {
+    :host {
+        grid-template-columns: 1fr;
+    }
+
+    .brand {
+        padding: 32px 24px;
+    }
+
+    .brand::before,
+    .brand::after {
+        display: none;
+    }
+
+    h1 {
+        font-size: 40px;
+        margin: 24px 0 12px;
+    }
+
+    .tagline {
+        font-size: 18px;
+        margin-bottom: 28px;
+    }
+
+    .features {
+        display: none;
+    }
+
+    .content {
+        align-items: flex-start;
+        padding: 40px 24px;
+    }
+}

@@ -1,0 +1,23 @@
+<label class="label" [attr.for]="id">
+  {{ label() }}
+  @if (required()) { <span class="req" aria-hidden="true">*</span> }
+</label>
+
+<input
+  class="input"
+  [class.invalid]="errorMessage()"
+  [id]="id"
+  [type]="type()"
+  [placeholder]="placeholder()"
+  [attr.autocomplete]="autocomplete()"
+  [attr.aria-invalid]="errorMessage() ? 'true' : null"
+  [attr.aria-describedby]="errorMessage() ? id + '-err' : null"
+  [value]="value()"
+  [disabled]="isDisabled()"
+  (input)="onInput($event)"
+  (blur)="onTouched()"
+/>
+
+@if (errorMessage(); as msg) {
+  <p class="error" [id]="id + '-err'" role="alert">{{ msg }}</p>
+}
