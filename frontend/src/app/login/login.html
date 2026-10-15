@@ -1,0 +1,109 @@
+<main class="login-page">
+
+    <!-- Panneau gauche : dégradé bleu avec message d'accueil -->
+    <section class="brand-panel" aria-hidden="true">
+        <div class="brand-panel__content">
+            <div class="brand-logo brand-logo--light">
+                <span class="brand-logo__mark">M</span>
+                <span class="brand-logo__name">MicroBesoin</span>
+            </div>
+            <h2 class="brand-panel__title">Bienvenue sur MicroBesoin</h2>
+            <p class="brand-panel__text">
+                Gérez simplement vos besoins et coordonnez vos équipes.
+                Connectez-vous pour accéder à votre espace de travail.
+            </p>
+        </div>
+    </section>
+
+    <!-- Panneau droit : formulaire de connexion -->
+    <section class="form-panel">
+        <div class="form-panel__inner">
+
+            <div class="brand-logo brand-logo--dark">
+                <span class="brand-logo__mark">M</span>
+                <span class="brand-logo__name">MicroBesoin</span>
+            </div>
+
+            <header class="form-header">
+                <h1 class="form-header__title">Se connecter</h1>
+                <p class="form-header__subtitle">Accédez à votre compte pour continuer.</p>
+            </header>
+
+            <!-- Bandeau d'erreur renvoyé par l'API / la validation -->
+            <div
+                id="api-error"
+                class="alert"
+                [class.alert--error]="!success()"
+                [class.alert--success]="success()"
+                role="alert"
+                [hidden]="apiError() === null"
+            >{{ apiError() }}</div>
+
+            <form id="login-form" class="login-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+                <div class="form-field" data-field="email" [class.form-field--invalid]="emailError()">
+                    <div class="form-field__label-row">
+                        <label class="form-field__label" for="email">Email</label>
+                    </div>
+                    <input
+                        class="form-field__input"
+                        type="email"
+                        id="email"
+                        formControlName="email"
+                        placeholder="vous@exemple.com"
+                        autocomplete="email"
+                        autofocus
+                        [attr.aria-invalid]="emailError() ? 'true' : null"
+                        (blur)="emailControl.markAsTouched()"
+                    >
+                    <span class="form-field__underline"></span>
+                    <span class="form-field__error" data-error-for="email">{{ emailError() }}</span>
+                </div>
+
+                <div class="form-field" data-field="password" [class.form-field--invalid]="passwordError()">
+                    <div class="form-field__label-row">
+                        <label class="form-field__label" for="password">Mot de passe</label>
+                        <a href="#" class="link link--forgot">Mot de passe oublié ?</a>
+                    </div>
+                    <div class="form-field__control">
+                        <input
+                            class="form-field__input"
+                            [type]="passwordHidden() ? 'password' : 'text'"
+                            id="password"
+                            formControlName="password"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                            [attr.aria-invalid]="passwordError() ? 'true' : null"
+                            (blur)="passwordControl.markAsTouched()"
+                        >
+                        <button
+                            type="button"
+                            class="form-field__toggle"
+                            [class.is-hidden]="!passwordHidden()"
+                            id="toggle-password"
+                            [attr.aria-label]="passwordHidden() ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
+                            (click)="togglePassword()"
+                        >
+                            <svg class="icon icon--eye" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="form-field__underline"></span>
+                    <span class="form-field__error" data-error-for="password">{{ passwordError() }}</span>
+                </div>
+
+                <button type="submit" class="btn btn--primary" id="submit-btn" [disabled]="loading()">
+                    <span class="btn__label">{{ loading() ? 'Connexion en cours…' : 'Se connecter' }}</span>
+                    <span class="btn__spinner" [hidden]="!loading()"></span>
+                </button>
+
+                <p class="login-form__footer">
+                    Vous n'avez pas de compte ?
+                    <a href="#" class="link">Inscription</a>
+                </p>
+            </form>
+        </div>
+    </section>
+</main>

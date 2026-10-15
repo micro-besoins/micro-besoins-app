@@ -8,7 +8,9 @@ const path = require("node:path");
 const puppeteer = require("puppeteer-core");
 
 const ROOT = path.join(__dirname, "..");
-const BASE_URL = "http://localhost:3000";
+const FRONTEND = path.join(ROOT, "frontend");
+const API_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:4200";
 const VALID = { email: "admin@microbesoin.fr", password: "123456" };
 
 const CHROME_CANDIDATES = [
@@ -32,44 +34,58 @@ function findChrome() {
     throw new Error("Chrome/Edge introuvable. Definis la variable CHROME_PATH.");
 }
 
-function startServer() {
-    const proc = spawn(process.execPath, ["server.js"], { cwd: ROOT, stdio: "ignore" });
-    return proc;
+function startApi() {
+    return spawn(process.execPath, ["server.js"], { cwd: ROOT, stdio: "ignore" });
 }
 
-async function waitForServer(timeoutMs) {
+function startFrontend() {
+    return spawn("npx", ["ng", "serve", "--proxy-config", "proxy.conf.json", "--port", "4200"], {
+        cwd: FRONTEND,
+        stdio: "ignore",
+        shell: true
+    });
+}
+
+async function waitForUrl(url, timeoutMs) {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         try {
-            const res = await fetch(BASE_URL + "/");
+            const res = await fetch(url);
             if (res.ok) return;
         } catch (err) { /* not ready yet */ }
-        await new Promise((r) => setTimeout(r, 150));
+        await new Promise((r) => setTimeout(r, 500));
     }
-    throw new Error("Le serveur n'a pas demarre dans le delai imparti.");
+    throw new Error("Le serveur " + url + " n'a pas demarre dans le delai imparti.");
 }
 
-let server;
+function killTree(proc) {
+    if (!proc || !proc.pid) return;
+    if (process.platform === "win32") {
+        spawn("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
+    } else {
+        proc.kill();
+    }
+}
+
+let api;
+let frontend;
 let browser;
 let page;
 
 async function logIn(email, password) {
-    await page.goto(BASE_URL + "/index.html", { waitUntil: "networkidle0" });
+    await page.goto(BASE_URL + "/", { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForSelector("#email", { timeout: 30000 });
     await page.type("#email", email);
     await page.type("#password", password);
-
-    const navigation = page
-        .waitForNavigation({ waitUntil: "networkidle0", timeout: 3000 })
-        .catch(() => null);
-
     await page.click("#submit-btn");
-    await new Promise((r) => setTimeout(r, 1200));
-    await navigation;
+    await new Promise((r) => setTimeout(r, 1500));
 }
 
 before(async () => {
-    server = startServer();
-    await waitForServer(10000);
+    api = startApi();
+    frontend = startFrontend();
+    await waitForUrl(API_URL + "/", 10000);
+    await waitForUrl(BASE_URL + "/", 180000);
     browser = await puppeteer.launch({
         executablePath: findChrome(),
         headless: true,
@@ -80,17 +96,18 @@ before(async () => {
 
 after(async () => {
     if (browser) await browser.close();
-    if (server) server.kill();
+    killTree(frontend);
+    killTree(api);
 });
 
 test("connexion valide : redirige vers la page vide", async () => {
     await logIn(VALID.email, VALID.password);
-    assert.match(page.url(), /page-vide\.html$/);
+    assert.match(page.url(), /page-vide$/);
 });
 
 test("mot de passe incorrect : affiche un message d'erreur", async () => {
     await logIn(VALID.email, "mauvais-mot-de-passe");
-    assert.match(page.url(), /index\.html$/);
+    assert.doesNotMatch(page.url(), /page-vide$/);
     const state = await page.evaluate(() => {
         const box = document.getElementById("api-error");
         return { hidden: box.hidden, text: box.textContent.trim() };
@@ -101,14 +118,14 @@ test("mot de passe incorrect : affiche un message d'erreur", async () => {
 
 test("email invalide : erreur de validation sur le champ", async () => {
     await logIn("pas-un-email", VALID.password);
-    assert.match(page.url(), /index\.html$/);
+    assert.doesNotMatch(page.url(), /page-vide$/);
     const error = await page.$eval('[data-error-for="email"]', (el) => el.textContent.trim());
     assert.notEqual(error, "");
 });
 
 test("champ vide : erreurs obligatoires", async () => {
     await logIn("", "");
-    assert.match(page.url(), /index\.html$/);
+    assert.doesNotMatch(page.url(), /page-vide$/);
     const errors = await page.evaluate(() => ({
         email: document.querySelector('[data-error-for="email"]').textContent.trim(),
         password: document.querySelector('[data-error-for="password"]').textContent.trim()
