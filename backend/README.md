@@ -74,9 +74,9 @@ Le fichier `.env` est dans le `.gitignore` : chacun a le sien en local.
 
 
 
-La table `utilisateur` doit contenir la colonne `motDePasse` (hash bcrypt du mot de passe).
+La table `utilisateur` utilise la colonne `password` du schéma MB-26 pour stocker le hash bcrypt du mot de passe (jamais le mot de passe en clair).
 
-Si elle manque, exécuter une fois `src/db/ajout-mot-de-passe.sql` sur la base.
+Créer les tables avec le fichier `MicroBesoins.sql` de la branche `MB-26-creer-la-bdd-des-utilisateurs`.
 
 
 

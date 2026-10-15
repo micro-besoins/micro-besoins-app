@@ -81,6 +81,41 @@ describe('API d’authentification MB-25', () => {
     }
   });
 
+  it('enregistre réellement le compte dans utilisateur', async () => {
+    const { rows } = await database.query(
+      'SELECT idUtilisateur AS id, email FROM utilisateur WHERE idUtilisateur = $1',
+      [createdUser?.id]
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].email, testEmail);
+  });
+
+  it('renvoie 400 pour une inscription incomplète', async () => {
+    const response = await request('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testEmail }),
+    });
+    assert.equal(response.status, 400);
+    assert.match(response.body.message as string, /Champs manquants ou invalides/);
+  });
+
+  it('autorise la prérequête CORS du formulaire Angular', async () => {
+    const origin = process.env.CORS_ORIGIN ?? 'http://localhost:4200';
+    const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: origin,
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type',
+      },
+    });
+    assert.equal(response.status, 204);
+    assert.equal(response.headers.get('access-control-allow-origin'), origin);
+    assert.match(response.headers.get('access-control-allow-methods') ?? '', /POST/);
+    assert.match(response.headers.get('access-control-allow-headers') ?? '', /content-type/i);
+  });
+
   it('connecte le compte de test avec les bons identifiants', async () => {
     const response = await request('/api/auth/login', {
       method: 'POST',
