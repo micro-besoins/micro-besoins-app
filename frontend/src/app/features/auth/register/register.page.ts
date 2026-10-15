@@ -71,11 +71,6 @@ export class RegisterPage {
   private messageFor(error: HttpErrorResponse): string {
     if (error.status === 409) return 'Cette adresse email est déjà utilisée.';
     if (error.status === 400 && error.error?.message === "Format d'email invalide.") return 'Adresse email invalide.';
-    if (error.status === 400) {
-      return typeof error.error?.message === 'string' && error.error.message.trim()
-        ? error.error.message
-        : 'Champs manquants ou invalides.';
-    }
     return 'Impossible de créer le compte. Veuillez réessayer.';
   }
 }
