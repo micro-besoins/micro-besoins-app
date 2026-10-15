@@ -18,6 +18,7 @@ CREATE TABLE gig (
 	datePublication		TIMESTAMP,
 	dateModification	TIMESTAMP,
 	statusGig			VARCHAR(20),
+	motif				TEXT,
 	idUtilisateur		INT,
 	CONSTRAINT fk_gig_utilisateur FOREIGN KEY (idUtilisateur) REFERENCES utilisateur(idUtilisateur) ON DELETE CASCADE
 );
@@ -55,4 +56,15 @@ CREATE TABLE avis (
 	idGig				INT,
 	CONSTRAINT fk_avis_utilisateur FOREIGN KEY (idUtilisateur) REFERENCES utilisateur(idUtilisateur) ON DELETE CASCADE,
 	CONSTRAINT fk_avis_gig FOREIGN KEY (idGig) REFERENCES gig(idGig) ON DELETE CASCADE
+);
+
+CREATE TABLE signalement (
+	idSignalement		INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	idGig				INT,
+	idUtilisateur		INT,
+	motif				TEXT NOT NULL,
+	statusSignalement	VARCHAR(20),
+	dateSignalement		TIMESTAMP,
+	CONSTRAINT fk_signalement_gig FOREIGN KEY (idGig) REFERENCES gig(idGig) ON DELETE CASCADE,
+	CONSTRAINT fk_signalement_utilisateur FOREIGN KEY (idUtilisateur) REFERENCES utilisateur(idUtilisateur) ON DELETE CASCADE
 );
