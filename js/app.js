@@ -10,7 +10,7 @@
         apiUrl: "auto",
 
         // Chemin de redirection après connexion réussie.
-        redirectUrl: "dashboard.html",
+        redirectUrl: "page-vide.html",
 
         // Mode démo : utile en développement, sans back-end disponible.
         // L'apiUrl est ignoré et la connexion est simulée (actif aussi
@@ -61,7 +61,7 @@
         if (errorEl) errorEl.textContent = message || "";
         if (message) field.setAttribute("aria-invalid", "true");
         else field.removeAttribute("aria-invalid");
-        return Boolean(message);
+        return !message;
     }
 
     function validateEmail() {
