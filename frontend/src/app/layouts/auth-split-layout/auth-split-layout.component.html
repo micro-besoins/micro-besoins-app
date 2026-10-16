@@ -1,0 +1,5 @@
+<section class="brand"><div class="brand-inner">
+  <div class="logo" aria-hidden="true">m</div><h1>{{ brand() }}</h1><p class="tagline">{{ tagline() }}</p>
+  <ul class="features">@for (f of features(); track f.title) {<li><span class="icon">@if (f.icon === 'check') {✓} @else {◌}</span><div><strong>{{ f.title }}</strong><span>{{ f.text }}</span></div></li>}</ul>
+</div></section>
+<main class="content"><div class="content-inner"><ng-content /></div></main>

@@ -1,0 +1,15 @@
+<app-auth-split-layout tagline="Publiez un besoin, proposez votre aide, créez du lien près de chez vous." [features]="features">
+  <p class="eyebrow">Créer un compte</p><h2>Rejoignez Micro-Besoins</h2><p class="sub">Un compte unique pour publier et proposer vos services.</p>
+  @if (successMessage()) { <p class="message success" role="status">{{ successMessage() }}</p> }
+  @if (errorMessage()) { <p class="message error" role="alert">{{ errorMessage() }}</p> }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="fields">
+      <app-form-field label="Nom complet" formControlName="fullName" autocomplete="name" [required]="true" [errors]="{ required: 'Le nom complet est requis.' }" />
+      <app-form-field label="Adresse email" type="email" placeholder="vous@exemple.mu" formControlName="email" autocomplete="email" [required]="true" [errors]="{ required: 'L’adresse email est requise.', email: 'Adresse email invalide.' }" />
+      <app-form-field label="Mot de passe" type="password" formControlName="password" autocomplete="new-password" [required]="true" [errors]="{ required: 'Le mot de passe est requis.', minlength: '8 caractères minimum.' }" />
+      <app-form-field label="Confirmer le mot de passe" type="password" formControlName="confirmPassword" autocomplete="new-password" [required]="true" [errors]="{ required: 'Confirmez votre mot de passe.', mismatch: 'Les mots de passe ne correspondent pas.' }" />
+    </div>
+    <app-button type="submit" [loading]="submitting()">Créer mon compte</app-button>
+  </form>
+  <p class="switch">Déjà membre ? <a routerLink="/auth/login">Se connecter</a></p>
+</app-auth-split-layout>
