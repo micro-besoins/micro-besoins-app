@@ -1,1 +1,10 @@
-*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#071d49;font-family:'Segoe UI',Arial,sans-serif;font-size:14px}a{color:inherit}button,input,textarea{font:inherit}button,a,input,textarea{outline-offset:4px}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #1665e8}button{cursor:pointer}button:disabled{cursor:wait;opacity:.55}a,button{-webkit-tap-highlight-color:transparent}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --blue-900: #0e3f93; --blue-700: #1157c8; --blue-600: #1668e3; --blue-500: #1a6fe8;
+  --ink: #111c33; --muted: #5d6676; --border: #dde1e8; --danger: #d92d3a;
+  --radius: 12px; --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font-family: var(--font); color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }

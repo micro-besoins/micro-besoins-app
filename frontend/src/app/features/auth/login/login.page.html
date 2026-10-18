@@ -1,0 +1,28 @@
+<app-auth-split-layout
+  tagline="Publiez un besoin, proposez votre aide, créez du lien près de chez vous."
+  [features]="features"
+>
+  <p class="eyebrow">Bienvenue</p>
+  <h2>Content de vous revoir</h2>
+  <p class="sub">Un compte unique pour publier et proposer vos services.</p>
+
+  @if (errorMessage()) { <p class="message error" role="alert">{{ errorMessage() }}</p> }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="fields">
+      <app-form-field
+        label="Adresse email" type="email" placeholder="vous@exemple.mu"
+        formControlName="email" autocomplete="email" [required]="true"
+        [errors]="{ required: 'L’adresse email est requise.', email: 'Adresse email invalide.' }"
+      />
+      <app-form-field
+        label="Mot de passe" type="password" formControlName="password"
+        autocomplete="current-password" [required]="true"
+        [errors]="{ required: 'Le mot de passe est requis.' }"
+      />
+    </div>
+    <app-button type="submit" [loading]="submitting()">Se connecter</app-button>
+  </form>
+
+  <p class="switch">Pas encore de compte ? <a routerLink="/auth/register">S'inscrire</a></p>
+</app-auth-split-layout>

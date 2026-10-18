@@ -1,14 +1,22 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "experimentalDecorators": true,
+    "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve",
-    "moduleResolution": "bundler"
+    "module": "preserve"
   },
   "angularCompilerOptions": {
-    "strictTemplates": true
-  }
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true
+  },
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }]
 }
