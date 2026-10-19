@@ -1,0 +1,10 @@
+**/node_modules/
+**/dist/
+**/.angular/
+**/.env
+**/.env.*
+!**/.env.example
+**/.local-postgres/
+test-results/
+playwright-report/
+artifacts/
