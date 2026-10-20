@@ -23,7 +23,7 @@ export interface PublicUser {
 }
 
 interface UserRow extends PublicUser {
-  motDePasse: string | null;
+  passwordHash: string | null;
 }
 
 export async function registerUser(input: {
@@ -37,7 +37,7 @@ export async function registerUser(input: {
 
   try {
     const { rows } = await pool.query<PublicUser>(
-      `INSERT INTO utilisateur (nom, prenom, email, motDePasse, roleUtilisateur)
+      `INSERT INTO utilisateur (nom, prenom, email, password, roleUtilisateur)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING idUtilisateur AS id, nom, prenom, email, roleUtilisateur AS role`,
       [input.nom, input.prenom, input.email, hash, input.role]
@@ -58,18 +58,18 @@ export async function loginUser(
 ): Promise<{ token: string; user: PublicUser }> {
   const { rows } = await pool.query<UserRow>(
     `SELECT idUtilisateur AS id, nom, prenom, email,
-            roleUtilisateur AS role, motDePasse AS "motDePasse"
+            roleUtilisateur AS role, password AS "passwordHash"
      FROM utilisateur
      WHERE email = $1`,
     [email]
   );
   const user = rows[0];
 
-  const passwordOk = await bcrypt.compare(password, user?.motDePasse ?? DUMMY_HASH);
+  const passwordOk = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
 
   // Même message que l'email soit inconnu ou le mot de passe faux
   // (un compte sans mot de passe enregistré est aussi refusé)
-  if (!user || !user.motDePasse || !passwordOk) {
+  if (!user || !user.passwordHash || !passwordOk) {
     throw new AppError(401, 'Email ou mot de passe incorrect.');
   }
 

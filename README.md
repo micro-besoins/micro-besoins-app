@@ -43,7 +43,7 @@ Renseignez ensuite les variables dans `backend/.env` :
 
 Ne commitez jamais le fichier `.env` ou une clé secrète.
 
-La table `utilisateur` doit disposer de la colonne `motDePasse`. Si nécessaire, exécutez une fois le script `backend/src/db/ajout-mot-de-passe.sql` sur votre base de données.
+La table `utilisateur` utilise la colonne `password`, qui contient le hash bcrypt (jamais le mot de passe en clair). Pour une base existante utilisant encore `motdepasse`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
 
 ## Lancer le projet en développement
 

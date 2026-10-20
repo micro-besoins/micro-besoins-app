@@ -74,9 +74,9 @@ Le fichier `.env` est dans le `.gitignore` : chacun a le sien en local.
 
 
 
-La table `utilisateur` doit contenir la colonne `motDePasse` (hash bcrypt du mot de passe).
+La table `utilisateur` doit contenir la colonne `password` (hash bcrypt du mot de passe).
 
-Si elle manque, exécuter une fois `src/db/ajout-mot-de-passe.sql` sur la base.
+Pour migrer une base plus ancienne qui possède `motdepasse`, exécutez une fois `src/db/mise-a-jour-schema.sql`.
 
 
 
