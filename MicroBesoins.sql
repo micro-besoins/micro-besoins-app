@@ -6,7 +6,7 @@ CREATE TABLE utilisateur (
 	nom					VARCHAR(20) NOT NULL,
 	prenom				VARCHAR(20) NOT NULL,
 	email				VARCHAR(100) UNIQUE NOT NULL,
-	password			VARCHAR(255) NOT NULL,
+	motDePasse			VARCHAR(255) NOT NULL,
 	roleUtilisateur		VARCHAR(20)
 );
 
