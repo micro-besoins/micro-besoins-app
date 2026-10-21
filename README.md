@@ -1,47 +1,38 @@
-# Micro-Besoins
+# MicroBesoins — Base de données
 
-Application web Micro-Besoins composée d'un front-end Angular et d'une API Express avec PostgreSQL.
+## Description
 
-## Prérequis
+Ce dossier contient le script SQL de la base de données du projet **MicroBesoins**. La base de données est développée avec **PostgreSQL** et permet de gérer les utilisateurs, les offres de services (*gigs*), les réponses, les paiements et les avis.
 
-- Node.js LTS et npm
-- PostgreSQL
-- Une base locale nommée `micro_besoins`
+## Technologies utilisées
 
-## Installation
+- **SGBD :** PostgreSQL
+- **Langage :** SQL
 
-Clonez le dépôt, puis installez les dépendances des deux projets :
+## Structure de la base de données
 
-```bash
-git clone <url-du-depot>
-cd micro-besoins-app
+La base de données comprend cinq tables principales :
 
-cd backend
-npm install
+|     Table     | Description |
+|---------------|-------------|
+| `utilisateur` | Stocke les informations des utilisateurs, notamment leur nom, prénom, adresse e-mail, mot de passe et rôle. |
+| `gig`         | Contient les offres de services publiées par les utilisateurs, avec leur titre, description, budget et statut. |
+| `reponse`     | Enregistre les réponses aux offres, le contenu proposé, le prix et le statut de chaque réponse. |
+| `paiement`    | Stocke les informations relatives aux paiements, notamment le montant, la méthode et le statut. |
+| `avis`        | Permet d'enregistrer les notes et les commentaires associés aux offres. |
 
-cd ../frontend
-npm install
-```
+## Relations entre les tables
 
-## Configuration du back-end
+- Un utilisateur peut publier plusieurs offres (`gig`).
+- Un utilisateur peut envoyer plusieurs réponses (`reponse`).
+- Une offre peut recevoir plusieurs réponses.
+- Un utilisateur peut effectuer plusieurs paiements.
+- Un paiement est associé à une réponse.
+- Les avis sont liés à un utilisateur et à une offre.
 
-Dans le dossier `backend`, copiez le fichier d'exemple :
+Les relations sont assurées par des clés étrangères (`FOREIGN KEY`). La règle `ON DELETE CASCADE` permet de supprimer automatiquement les enregistrements dépendants lorsqu'un enregistrement référencé est supprimé.
 
-```powershell
-Copy-Item .env.example .env
-```
-
-Renseignez ensuite les variables dans `backend/.env` :
-
-| Variable | Description |
-| --- | --- |
-| `PORT` | Port de l'API (`3000` par défaut) |
-| `DATABASE_URL` | URL de connexion PostgreSQL |
-| `JWT_SECRET` | Clé secrète pour signer les jetons JWT |
-| `JWT_EXPIRES_IN` | Durée de validité du jeton (ex. `1h`) |
-| `CORS_ORIGIN` | URL du front autorisée (`http://localhost:4200`) |
-
-Ne commitez jamais le fichier `.env` ou une clé secrète.
+## Installation et création
 
 La table `utilisateur` utilise la colonne `motdepasse`, qui contient le hash bcrypt (jamais le mot de passe en clair). Le champ de l'API reste nommé `password`. Pour une base existante utilisant encore `password`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
 
@@ -61,58 +52,28 @@ Après avoir créé la base et les tables initiales, exécutez les scripts dans 
 
 Le script `backend/src/db/ajout-mot-de-passe.sql` est conservé pour les anciennes installations, mais son traitement est déjà inclus dans `mise-a-jour-schema.sql`.
 
-## Lancer le projet en développement
+Dans PostgreSQL ou dans pgAdmin, exécuter :
 
-Ouvrez deux terminaux.
-
-### API Express
-
-```bash
-cd backend
-npm run dev
+```sql
+CREATE DATABASE "microBesoins";
 ```
 
-L'API est disponible sur `http://localhost:3000`.
+### 2. Se connecter à la base de données
 
-### Application Angular
+Dans pgAdmin, sélectionner la base de données créée, puis ouvrir l'outil **Query Tool**.
 
-```bash
-cd frontend
-npm start
-```
+### 3. Créer les tables
 
-Ouvrez ensuite `http://localhost:4200` dans le navigateur.
+Exécuter le contenu du fichier `MicroBesoins.sql` dans la base de données `microBesoins`.
 
-## Compiler
+Les tables doivent être créées dans le bon ordre afin de respecter les relations entre les clés primaires et les clés étrangères.
 
-```bash
-cd backend
-npm run build
+## Remarques
 
-cd ../frontend
-npm run build
-```
+- Les identifiants (`idUtilisateur`, `idGig`, etc.) sont générés automatiquement grâce à `GENERATED ALWAYS AS IDENTITY`.
+- Les adresses e-mail des utilisateurs doivent être uniques.
+- Les champs obligatoires sont définis avec `NOT NULL`.
+- Les mots de passe doivent être stockés sous forme de hachage sécurisé dans l'application, et non en texte brut.
+- Les statuts et les rôles sont actuellement représentés par des champs `VARCHAR`.
 
-## Tests API
-
-L'API et PostgreSQL doivent être démarrés et configurés avant de lancer les tests :
-
-```bash
-cd backend
-npm test
-```
-
-## Routes d'authentification
-
-| Méthode | Route | Description |
-| --- | --- | --- |
-| `POST` | `/api/auth/register` | Crée un compte |
-| `POST` | `/api/auth/login` | Connecte un utilisateur |
-| `GET` | `/api/auth/me` | Renvoie l'utilisateur connecté (jeton requis) |
-
-L'inscription attend les champs `nom`, `prenom`, `email`, `password` et `role` (`demandeur` ou `prospect`).
-
-## Dépannage
-
-- Si le front ne peut pas joindre l'API, vérifiez que l'API écoute sur le port `3000` et que `CORS_ORIGIN=http://localhost:4200` est défini dans `backend/.env`.
-- Si `npm` signale qu'il ne trouve pas `package.json`, placez-vous dans `backend` ou `frontend` avant de lancer une commande npm.
+## Projet

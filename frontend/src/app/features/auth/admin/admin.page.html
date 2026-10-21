@@ -1,0 +1,55 @@
+<a class="skip" href="#content">Aller au contenu</a>
+<header class="header">
+  <a class="brand" routerLink="/admin"><span class="logo">m</span> Micro-Besoins</a>
+  <a class="nav" routerLink="/admin" aria-current="page">Administration</a>
+  <div class="profile"><span class="avatar">AD</span><div><strong>Admin démo</strong><small>Administration</small></div></div>
+</header>
+<main id="content" [class.consultation]="id()">
+  @if (!id()) {
+  <p class="eyebrow">Administration</p>
+  <h1>{{ id() ? 'Consultation du dossier' : 'Tableau de bord' }}</h1>
+  <p class="intro">Modérez les publications et suivez les opérations fictives.</p>
+  }
+  @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
+  @if (invalid()) {
+    <section class="panel empty"><h2>Section introuvable</h2><a routerLink="/admin">Revenir au tableau de bord</a></section>
+  } @else if (id()) {
+    <a class="back" [routerLink]="['/admin',current()]">← Retour à la liste</a>
+    @if (item(); as d) {
+      @if (d.section === 'publications') {
+        <app-publication-detail [dossier]="d" (approve)="ask(d,'accepter')" (refuse)="ask(d,'refuser')" (report)="ask(d,'signaler')" />
+      } @else {
+      <article class="panel detail"><div class="detail-heading"><div><p class="eyebrow">{{ d.id }}</p><h2>{{ d.title }}</h2></div><span class="badge" [class.pending]="pending(d)">{{ d.status }}</span></div>
+        <dl><div><dt>{{ d.section === 'signalements' ? 'Signalant' : 'Auteur' }}</dt><dd>{{ d.author }}</dd></div><div><dt>Date</dt><dd>{{ d.date | date:'dd/MM/yyyy' }}</dd></div><div><dt>Catégorie</dt><dd>{{ d.category }}</dd></div><div><dt>Lieu</dt><dd>{{ d.city }}</dd></div>@if (d.section !== 'signalements') { <div><dt>Montant</dt><dd>{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</dd></div> }<div><dt>Contact</dt><dd>{{ d.email }}</dd></div></dl>
+        <h3>{{ d.section === 'signalements' ? 'Motif du signalement' : 'Description' }}</h3><p class="description">{{ d.description }}</p>
+        <div class="detail-actions">
+          @if (pending(d)) {
+            @if (d.section === 'signalements') { <button class="primary" (click)="ask(d,'traiter')">Traiter le signalement</button> }
+            @else { <button class="primary" (click)="ask(d,'accepter')">Accepter</button><button class="danger" (click)="ask(d,'refuser')">Refuser</button> }
+          }
+          @if (d.section !== 'signalements') { <a class="button" [href]="contact(d)">Contacter</a> }
+        </div>
+        @if (d.section === 'paiements') { <p class="hint">Ces actions portent sur le suivi du dossier. Aucun débit ni remboursement n’est déclenché.</p> }
+      </article>
+      }
+    } @else { <section class="panel empty"><h2>Dossier introuvable</h2><p>Ce dossier n’existe pas dans les données actuellement chargées.</p></section> }
+  } @else {
+    <section class="metrics" aria-label="Statistiques de modération">
+      @for (s of sections; track s.key) { <a class="metric" [routerLink]="['/admin',s.key]"><span>{{ s.metric }}</span><strong>{{ count(s.key) }}</strong></a> }
+    </section>
+    <section class="panel listing" aria-label="Dossiers à consulter">
+      <nav class="tabs" aria-label="Sections administrateur">@for (s of sections; track s.key) { <a [routerLink]="['/admin',s.key]" [class.active]="current()===s.key" [attr.aria-current]="current()===s.key ? 'page' : null">{{ s.label }}</a> }</nav>
+      <div class="table-scroll"><table><caption class="sr-only">Liste des {{ current() }}</caption><thead><tr><th>{{ current()==='publications' ? 'Annonce' : current()==='paiements' ? 'Transaction' : 'Signalement' }}</th><th>{{ current()==='signalements' ? 'Signalant' : 'Auteur' }}</th>@if (current()!=='signalements') { <th>{{ current()==='publications' ? 'Budget' : 'Montant' }}</th> }<th>Statut</th><th>Actions</th></tr></thead><tbody>
+        @for (d of rows(); track d.id) { <tr><td><strong>{{ d.title }}</strong><small>{{ d.category }} · {{ d.city }}</small></td><td>{{ d.author }}</td>@if (current()!=='signalements') { <td class="amount">{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</td> }<td><span class="badge" [class.pending]="pending(d)" [class.refused]="d.status==='Refusé'">{{ d.status }}</span></td><td><div class="row-actions"><a class="button" [routerLink]="['/admin',d.section,d.id]">Consulter</a>@if (pending(d)) { @if (d.section==='signalements') { <button (click)="ask(d,'traiter')">Traiter</button> } @else { <button (click)="ask(d,'accepter')">Approuver</button><button class="danger" (click)="ask(d,'refuser')">Refuser</button> } }</div></td></tr> }
+        @empty { <tr><td colspan="5" class="empty">Aucun dossier dans cette section.</td></tr> }
+      </tbody></table></div>
+    </section>
+  }
+</main>
+@if (confirmation(); as c) {
+  <dialog #modal class="dialog" aria-labelledby="dialog-title" (cancel)="$event.preventDefault(); confirmation.set(null)"><h2 id="dialog-title">{{ c.action==='signaler' ? 'Signaler l’annonce' : c.action==='traiter' ? 'Traiter le signalement' : c.action==='refuser' ? 'Refuser le dossier' : 'Approuver le dossier' }}</h2><p>{{ c.item.title }}</p>@if (c.action==='traiter' || c.action==='signaler') { <label for="note">{{ c.action==='signaler' ? 'Motif du signalement (obligatoire)' : 'Résultat du traitement (obligatoire)' }}</label><textarea id="note" maxlength="2000" [value]="note()" (input)="note.set($any($event.target).value)"></textarea> }<p class="hint">Cette action est fictive.</p><div class="detail-actions"><button (click)="confirmation.set(null)">Annuler</button><button class="primary" [disabled]="((c.action==='traiter' || c.action==='signaler') && !note().trim())" (click)="confirm()">Confirmer</button></div></dialog>
+}
+
+
+
+

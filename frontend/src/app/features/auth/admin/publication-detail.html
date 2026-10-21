@@ -1,0 +1,37 @@
+@let d = dossier();
+<div class="publication-layout">
+  <article class="publication-card">
+    <div class="title-row"><p class="category">{{ d.category }}</p><span class="status" [class.completed]="d.status==='Terminé'" [class.pending]="d.status==='À valider'">{{ d.status }}</span></div>
+    <h1>{{ d.title }}</h1>
+    <div class="author"><span class="avatar">{{ initials(d.author) }}</span><div><span class="muted">Publié par</span><strong>{{ d.author }}</strong><small>{{ d.city }}@if (d.details; as details) { · Membre depuis {{ details.memberSince }} }</small></div></div>
+    <dl class="facts">
+      <div><span class="fact-icon" aria-hidden="true">⌖</span><div><dt>Lieu</dt><dd>{{ d.city }}</dd></div></div>
+      <div><span class="fact-icon" aria-hidden="true">▱</span><div><dt>Budget indicatif</dt><dd>Rs {{ d.amount | number:'1.0-0' }}</dd></div></div>
+      <div><span class="fact-icon" aria-hidden="true">▦</span><div><dt>Date souhaitée</dt><dd>{{ d.details ? (d.details.desiredDate | date:'d MMMM yyyy') : 'À convenir' }}</dd></div></div>
+    </dl>
+    <section class="description-section"><h2>Description du besoin</h2><p>{{ d.description }}</p>
+      @if (selected(); as provider) {
+        <div class="selected"><span class="check" aria-hidden="true">✓</span><div><small>Prestataire retenu</small><strong>{{ provider.name }}</strong><p>Montant convenu : <b>Rs {{ provider.amount | number:'1.0-0' }}</b></p></div><a class="contact-button" [href]="contact(provider.email)"><span aria-hidden="true">▢</span> Contacter</a></div>
+      } @else {
+        <div class="moderation">@if (d.status==='À valider') { <button class="primary" (click)="approve.emit()">Accepter</button><button (click)="refuse.emit()">Refuser</button> }<a class="contact-button" [href]="contact(d.email)">Contacter l’auteur</a></div>
+      }
+    </section>
+    <section class="proposals-section"><h2>Propositions reçues <span class="count">{{ d.details?.proposals?.length ?? 0 }}</span></h2>
+      @for (proposal of d.details?.proposals ?? []; track proposal.email) {
+        <div class="proposal"><span class="avatar">{{ initials(proposal.name) }}</span><div class="proposal-content"><strong>{{ proposal.name }}</strong><small>{{ proposal.availability }}</small><p>{{ proposal.description }}</p></div><div class="proposal-side"><strong>Rs {{ proposal.amount | number:'1.0-0' }}</strong>@if (proposal.accepted) { <span class="status">Acceptée</span> }<a [href]="contact(proposal.email)">Contacter</a></div></div>
+      } @empty { <p class="empty-text">Aucune proposition pour ce besoin.</p> }
+    </section>
+    <section class="reviews-section"><h2>Avis liés à ce besoin</h2>
+      @for (review of d.details?.reviews ?? []; track review.name) {
+        <div class="review"><strong>{{ review.name }} · <span [attr.aria-label]="review.rating+' étoiles sur 5'">{{ stars(review.rating) }}</span></strong><p>{{ review.comment }}</p></div>
+      } @empty { <p class="empty-text">Aucun avis pour le moment.</p> }
+    </section>
+  </article>
+  <aside class="payment-card" aria-label="Suivi des paiements">
+    <button class="report-button" (click)="report.emit()"><span aria-hidden="true">⚑</span> Signaler l’annonce</button>
+    <h2>Suivi des paiements</h2>
+    @for (payment of d.details?.payments ?? []; track payment.label) { <div class="payment"><p>{{ payment.label }}</p><strong>{{ payment.status }} · Rs {{ payment.amount | number:'1.0-0' }} · {{ payment.date | date:'d MMMM yyyy' }}</strong></div> }
+    @empty { <p class="empty-text">Aucun paiement enregistré dans cette démonstration.</p> }
+    <p class="payment-hint">Les paiements sont fictifs. Le versement au prestataire reste à définir.</p>
+  </aside>
+</div>
