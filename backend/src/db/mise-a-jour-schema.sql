@@ -50,3 +50,9 @@ CREATE TABLE IF NOT EXISTS signalement (
 );
 
 COMMIT;
+
+-- A Ajouter pour modifier la table paiement
+ALTER TABLE paiement ADD COLUMN idgig INTEGER;
+ALTER TABLE paiement ADD CONSTRAINT fk_paiement_gig FOREIGN KEY (idgig) REFERENCES gig(idgig);
+
+ALTER TABLE paiement ALTER COLUMN idreponse DROP NOT NULL;

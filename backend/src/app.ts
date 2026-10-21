@@ -5,6 +5,8 @@ import { errorHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import gigRoutes from './routes/gig.routes';
 import paymentRoutes from './routes/payment.routes';
+import { notFound } from './middleware/not-found';
+import routes from './routes';
 
 const app = express();
 
@@ -16,5 +18,9 @@ app.use('/api/gigs', gigRoutes);
 app.use('/api/payments', paymentRoutes);
 
 app.use(errorHandler);
+
+app.use('/api', routes);
+
+app.use(notFound);
 
 export default app;

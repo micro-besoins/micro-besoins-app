@@ -75,7 +75,7 @@ export async function categoryExists(category: string): Promise<boolean> {
 export async function findGigs(filters: GigFilters) {
   const capabilities = await getCapabilities();
   const values: string[] = [];
-  const conditions: string[] = [`g.statusgig = 'publie'`];
+  const conditions: string[] = [`g.statusgig = 'VALIDE'`];
   const add = (condition: string, value: string) => {
     values.push(value);
     conditions.push(condition.replace('?', `$${values.length}`));
@@ -123,8 +123,8 @@ export async function createGig(input: CreateGigInput) {
       [input.title, input.description, input.budget, input.category, input.location, input.requestedAt, input.ownerId]
     );
     await client.query(
-      `INSERT INTO payment_intent (idGig, idUtilisateur, provider, status, amount, currency)
-       VALUES ($1, $2, 'mcb', 'pending_validation', 75, 'MUR')`,
+      `INSERT INTO paiement (idgig, idutilisateur, methode, statuspaiement, montant)
+       VALUES ($1, $2, 'mcb', 'EN_ATTENTE', 75)`,
       [rows[0].id, input.ownerId]
     );
     await client.query('COMMIT');
