@@ -48,9 +48,7 @@ async function getCapabilities(): Promise<GigCapabilities> {
 export async function getGigFilterOptions(): Promise<GigFilterOptions> {
   const capabilities = await getCapabilities();
   const queries = [
-    capabilities.hasCategory
-      ? pool.query<{ value: string }>(`SELECT DISTINCT categorie AS value FROM gig WHERE categorie IS NOT NULL AND categorie <> '' ORDER BY value`)
-      : Promise.resolve({ rows: [] as { value: string }[] }),
+    pool.query<{ value: string }>(`SELECT nom AS value FROM categorie ORDER BY nom`),
     capabilities.hasLocation
       ? pool.query<{ value: string }>(`SELECT DISTINCT localite AS value FROM gig WHERE localite IS NOT NULL AND localite <> '' ORDER BY value`)
       : Promise.resolve({ rows: [] as { value: string }[] }),
@@ -64,6 +62,14 @@ export async function getGigFilterOptions(): Promise<GigFilterOptions> {
     locations: locations.rows.map((row) => row.value),
     budgets: budgets.rows.map((row) => row.value),
   };
+}
+
+export async function categoryExists(category: string): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `SELECT 1 FROM categorie WHERE nom = $1`,
+    [category]
+  );
+  return (rowCount ?? 0) > 0;
 }
 
 export async function findGigs(filters: GigFilters) {

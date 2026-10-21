@@ -22,6 +22,20 @@ ALTER TABLE gig ADD COLUMN IF NOT EXISTS categorie VARCHAR(50);
 ALTER TABLE gig ADD COLUMN IF NOT EXISTS localite VARCHAR(80);
 ALTER TABLE gig ADD COLUMN IF NOT EXISTS dateSouhaitee TIMESTAMP;
 
+-- Les catégories sont des données de référence : elles existent même sans annonce.
+CREATE TABLE IF NOT EXISTS categorie (
+  idCategorie INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  nom VARCHAR(50) UNIQUE NOT NULL
+);
+
+INSERT INTO categorie (nom) VALUES
+  ('Nettoyage'),
+  ('Jardinage'),
+  ('Aide informatique'),
+  ('Petits travaux'),
+  ('Cours particuliers')
+ON CONFLICT (nom) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS signalement (
   idSignalement INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   idGig INT,

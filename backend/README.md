@@ -76,7 +76,19 @@ Le fichier `.env` est dans le `.gitignore` : chacun a le sien en local.
 
 La table `utilisateur` doit contenir la colonne `password` (hash bcrypt du mot de passe).
 
-Pour migrer une base plus ancienne qui possède `motdepasse`, exécutez une fois `src/db/mise-a-jour-schema.sql`.
+Pour migrer une base plus ancienne qui possède `motdepasse`, exécutez une fois `src/db/mise-a-jour-schema.sql`. Ce script crée aussi la table de référence `categorie` et initialise les catégories proposées lors de la publication ; elles ne dépendent pas des annonces existantes.
+
+Les annonces de démonstration sont facultatives : exécutez `src/db/jeu-de-donnees-demo.sql` seulement pour tester la recherche et les filtres avec des annonces initiales.
+
+### Scripts SQL
+
+Après la création des tables initiales, exécutez les scripts dans cet ordre :
+
+1. `src/db/mise-a-jour-schema.sql` : met à jour le schéma et initialise les catégories.
+2. `src/db/ajout-architecture-paiement.sql` : crée le stockage des intentions de paiement, sans activer de paiement réel.
+3. `src/db/jeu-de-donnees-demo.sql` : facultatif, ajoute des annonces pour tester les filtres.
+
+`src/db/ajout-mot-de-passe.sql` est un ancien script conservé pour compatibilité ; utilisez plutôt `mise-a-jour-schema.sql`.
 
 
 

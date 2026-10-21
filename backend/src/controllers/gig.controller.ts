@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { createGig, findGigs, getGigFilterOptions } from '../services/gig.service';
+import { categoryExists, createGig, findGigs, getGigFilterOptions } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -38,6 +38,9 @@ export async function publishGig(req: Request, res: Response, next: NextFunction
       throw new AppError(400, 'Le budget doit être supérieur à zéro.');
     }
     if (title.trim().length > 50) throw new AppError(400, 'Le titre ne doit pas dépasser 50 caractères.');
+    if (!await categoryExists(category.trim())) {
+      throw new AppError(400, 'La catégorie sélectionnée est invalide.');
+    }
     const requestedDate = new Date(requestedAt);
     if (Number.isNaN(requestedDate.getTime())) throw new AppError(400, 'La date souhaitée est invalide.');
     const gig = await createGig({
