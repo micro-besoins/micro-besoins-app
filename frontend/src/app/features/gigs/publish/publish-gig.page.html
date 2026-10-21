@@ -1,0 +1,64 @@
+<header class="topbar">
+  <a routerLink="/" class="brand"><span class="logo">m</span>Micro-Besoins</a>
+  <nav><a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions">Mes propositions</a><a routerLink="/messages">Messages</a></nav>
+</header>
+
+<main>
+  <a routerLink="/" class="back">‹ {{ step() === 1 ? 'Annuler et revenir' : 'Modifier mon besoin' }}</a>
+  <div class="steps" aria-label="Étapes de publication">
+    <div [class.current]="step() === 1" [class.done]="step() === 2"><b>{{ step() === 2 ? '✓' : '1' }}</b><span>Votre besoin</span></div>
+    <i></i>
+    <div [class.current]="step() === 2"><b>2</b><span>Carte fictive</span></div>
+  </div>
+
+  @if (step() === 1) {
+    <section class="panel">
+      <p class="eyebrow">Étape 1 sur 2</p><h1>Publier un besoin</h1>
+      <p class="intro">Présentez clairement votre demande aux personnes disponibles.</p>
+      @if (errorMessage()) { <p class="message" role="alert">{{ errorMessage() }}</p> }
+      <form [formGroup]="form" (ngSubmit)="continue()" novalidate>
+        <label>Titre *<input formControlName="title" maxlength="50" [class.field-invalid]="invalid('title')" placeholder="Ex. Nettoyage des vitres"></label>
+        @if (invalid('title')) { <small class="error">Saisissez un titre entre 5 et 50 caractères.</small> }
+        <div class="two">
+          <div><label>Catégorie *<select formControlName="category" [class.field-invalid]="invalid('category')"><option value="">Choisissez une catégorie</option>@for (category of categories(); track category) { <option [value]="category">{{ category }}</option> }</select></label>@if (invalid('category')) { <small class="error">Choisissez une catégorie.</small> }</div>
+          <div><label>Lieu *<input formControlName="location" [class.field-invalid]="invalid('location')" placeholder="Ex. Quatre Bornes"></label>@if (invalid('location')) { <small class="error">Saisissez un lieu valide.</small> }</div>
+        </div>
+        <label>Description *<textarea formControlName="description" rows="6" [class.field-invalid]="invalid('description')" placeholder="Expliquez clairement le service dont vous avez besoin."></textarea></label>
+        @if (invalid('description')) { <small class="error">La description doit contenir au moins 20 caractères.</small> }
+        <div class="two">
+          <div><label>Budget indicatif du service (Rs) *<input type="number" min="1" step="1" formControlName="budget" [class.field-invalid]="invalid('budget')" placeholder="Ex. 1500"></label>@if (invalid('budget')) { <small class="error">Saisissez un budget supérieur à Rs 0.</small> }</div>
+          <div><label>Date souhaitée *<input type="date" [min]="minDate" formControlName="requestedAt" [class.field-invalid]="invalid('requestedAt')"></label>@if (invalid('requestedAt')) { <small class="error">Choisissez une date.</small> }</div>
+        </div>
+        <p class="notice"><strong>Budget indicatif</strong> Le montant final sera celui de la proposition que vous acceptez.</p>
+        <div class="form-actions"><a routerLink="/">Annuler</a><button type="submit">Continuer vers le récapitulatif</button></div>
+      </form>
+    </section>
+  } @else {
+    <section class="confirmation">
+      <div class="panel validation">
+        <p class="eyebrow">Étape 2 sur 2</p><h1>Soumettre pour validation</h1>
+        <p class="intro">Aucun débit n'est effectué à cette étape.</p>
+        @if (errorMessage()) { <p class="message" role="alert">{{ errorMessage() }}</p> }
+        @if (successMessage()) { <p class="success" role="status">{{ successMessage() }}</p> }
+        <form [formGroup]="paymentForm" (ngSubmit)="submit()" novalidate>
+          <div class="card-info"><strong>Validation de la publication</strong><span>Les frais de publication de Rs 75 seront prélevés uniquement après validation de votre besoin par un administrateur.</span></div>
+          <label>Numéro de carte fictif *<input formControlName="cardNumber" inputmode="numeric" autocomplete="off" [class.field-invalid]="paymentInvalid('cardNumber')" placeholder="4242 4242 4242 4242"></label>
+          @if (paymentInvalid('cardNumber')) { <small class="error">Saisissez un numéro fictif.</small> }
+          <div class="two">
+            <div><label>Expiration *<input formControlName="expiry" autocomplete="off" [class.field-invalid]="paymentInvalid('expiry')" placeholder="12/28"></label>@if (paymentInvalid('expiry')) { <small class="error">Saisissez une date d'expiration fictive.</small> }</div>
+            <div><label>Cryptogramme *<input formControlName="cvc" inputmode="numeric" autocomplete="off" [class.field-invalid]="paymentInvalid('cvc')" placeholder="123"></label>@if (paymentInvalid('cvc')) { <small class="error">Saisissez un cryptogramme fictif.</small> }</div>
+          </div>
+          <label class="check"><input type="checkbox" formControlName="acknowledgement"><span>Les Rs 75 seront débités seulement après validation et publication de votre besoin par un administrateur.</span></label>
+          @if (paymentInvalid('acknowledgement')) { <small class="error">Vous devez confirmer cette information.</small> }
+          <div class="form-actions"><button type="button" class="secondary" (click)="returnToForm()">Retour</button><button type="submit" [disabled]="submitting() || !!successMessage()">{{ submitting() ? 'Transmission…' : 'Soumettre pour validation' }}</button></div>
+        </form>
+      </div>
+      <aside class="summary">
+        <h2>Récapitulatif</h2><p class="summary-category">{{ form.controls.category.value }}</p><h3>{{ form.controls.title.value }}</h3><p class="summary-place">⌖ {{ form.controls.location.value }}</p>
+        <hr><div><span>Budget indicatif du service<small>Montant final selon la proposition acceptée</small></span><b>Rs {{ form.controls.budget.value }}</b></div>
+        <hr><div><span>Frais de validation<small>Débit seulement après validation et publication</small></span><b>Rs 75</b></div>
+        <hr><div><span>Débité maintenant</span><b>Rs 0</b></div>
+      </aside>
+    </section>
+  }
+</main>
