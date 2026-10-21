@@ -3,17 +3,17 @@
 
 BEGIN;
 
--- Conserve les hashes déjà enregistrés en renommant l'ancienne colonne.
+-- Aligne la base sur la convention de l'équipe, sans perdre les hashes existants.
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'utilisateur' AND column_name = 'motdepasse'
+    WHERE table_schema = 'public' AND table_name = 'utilisateur' AND column_name = 'password'
   ) AND NOT EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'utilisateur' AND column_name = 'password'
+    WHERE table_schema = 'public' AND table_name = 'utilisateur' AND column_name = 'motdepasse'
   ) THEN
-    ALTER TABLE utilisateur RENAME COLUMN motdepasse TO password;
+    ALTER TABLE utilisateur RENAME COLUMN password TO motdepasse;
   END IF;
 END $$;
 

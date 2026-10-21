@@ -74,9 +74,9 @@ Le fichier `.env` est dans le `.gitignore` : chacun a le sien en local.
 
 
 
-La table `utilisateur` doit contenir la colonne `password` (hash bcrypt du mot de passe).
+La table `utilisateur` doit contenir la colonne `motdepasse` (hash bcrypt du mot de passe). Le champ reçu par l'API reste nommé `password`.
 
-Pour migrer une base plus ancienne qui possède `motdepasse`, exécutez une fois `src/db/mise-a-jour-schema.sql`. Ce script crée aussi la table de référence `categorie` et initialise les catégories proposées lors de la publication ; elles ne dépendent pas des annonces existantes.
+Pour migrer une base plus ancienne qui possède `password`, exécutez une fois `src/db/mise-a-jour-schema.sql`. Ce script renomme la colonne sans perdre les hashes, crée aussi la table de référence `categorie` et initialise les catégories proposées lors de la publication ; elles ne dépendent pas des annonces existantes.
 
 Les annonces de démonstration sont facultatives : exécutez `src/db/jeu-de-donnees-demo.sql` seulement pour tester la recherche et les filtres avec des annonces initiales.
 

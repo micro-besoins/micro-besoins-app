@@ -43,7 +43,7 @@ Renseignez ensuite les variables dans `backend/.env` :
 
 Ne commitez jamais le fichier `.env` ou une clé secrète.
 
-La table `utilisateur` utilise la colonne `password`, qui contient le hash bcrypt (jamais le mot de passe en clair). Pour une base existante utilisant encore `motdepasse`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
+La table `utilisateur` utilise la colonne `motdepasse`, qui contient le hash bcrypt (jamais le mot de passe en clair). Le champ de l'API reste nommé `password`. Pour une base existante utilisant encore `password`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
 
 ### Initialiser les catégories
 

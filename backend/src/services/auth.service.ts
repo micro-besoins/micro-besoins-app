@@ -37,7 +37,7 @@ export async function registerUser(input: {
 
   try {
     const { rows } = await pool.query<PublicUser>(
-      `INSERT INTO utilisateur (nom, prenom, email, password, roleUtilisateur)
+      `INSERT INTO utilisateur (nom, prenom, email, motdepasse, roleUtilisateur)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING idUtilisateur AS id, nom, prenom, email, roleUtilisateur AS role`,
       [input.nom, input.prenom, input.email, hash, input.role]
@@ -58,7 +58,7 @@ export async function loginUser(
 ): Promise<{ token: string; user: PublicUser }> {
   const { rows } = await pool.query<UserRow>(
     `SELECT idUtilisateur AS id, nom, prenom, email,
-            roleUtilisateur AS role, password AS "passwordHash"
+            roleUtilisateur AS role, motdepasse AS "passwordHash"
      FROM utilisateur
      WHERE email = $1`,
     [email]
