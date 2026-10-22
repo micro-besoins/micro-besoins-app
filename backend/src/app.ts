@@ -7,6 +7,7 @@ import gigRoutes from './routes/gig.routes';
 import paymentRoutes from './routes/payment.routes';
 import { notFound } from './middleware/not-found';
 import routes from './routes';
+// import 'express-async-errors';
 
 const app = express();
 
