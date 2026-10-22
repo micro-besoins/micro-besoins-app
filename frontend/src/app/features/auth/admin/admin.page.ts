@@ -2,8 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
+import { AuthService, RegisteredUser } from '../auth.service';
 import { AdminService } from './admin.service';
 import { Dossier, Section } from './admin.types';
 import { PublicationDetail } from './publication-detail';
@@ -11,6 +12,10 @@ import { PublicationDetail } from './publication-detail';
 @Component({selector:'app-admin',imports:[RouterLink,CurrencyPipe,DatePipe,PublicationDetail],templateUrl:'./admin.page.html',styleUrl:'./admin.page.css'})
 export class AdminPage {
   private readonly adminApi = inject(AdminService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  protected readonly user = signal<RegisteredUser | null>(this.auth.currentUser());
+  protected readonly profileOpen = signal(false);
   readonly params = toSignal(inject(ActivatedRoute).paramMap);
   readonly sections = [
     {key:'publications' as Section, label:'Publications', metric:'À valider', pending:'EN_ATTENTE'},
@@ -118,6 +123,22 @@ export class AdminPage {
         this.load(this.current());
       },
     });
+  }
+
+  protected toggleProfile(): void { this.profileOpen.update((open) => !open); }
+
+  protected initials(firstName: string | null, lastName: string | null): string {
+    return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase() || '?';
+  }
+
+  protected goHome(): void {
+    this.profileOpen.set(false);
+    void this.router.navigateByUrl('/');
+  }
+
+  protected logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/auth/login');
   }
 
   contact(d:Dossier): string { return `mailto:${d.email}?subject=${encodeURIComponent('Suivi du dossier '+d.id)}`; }
