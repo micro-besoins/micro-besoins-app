@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './features/auth/admin.guard';
 
 export const routes: Routes = [
   { path: '', title: 'Micro-Besoins', loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage) },
@@ -10,5 +11,8 @@ export const routes: Routes = [
   { path: 'admin', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage)  },
   { path: 'admin/:section/:id', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
   { path: 'admin/:section', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
+  { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
+  { path: 'admin/:section/:id', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
+  { path: 'admin/:section', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
   { path: '**', redirectTo: '' },
 ];
