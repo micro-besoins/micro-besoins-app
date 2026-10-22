@@ -73,10 +73,11 @@ export async function loginUser(
     throw new AppError(401, 'Email ou mot de passe incorrect.');
   }
 
-  const payload: AuthPayload = { id: user.id, role: user.role };
-  const token = jwt.sign(payload, env.jwtSecret, {
-    expiresIn: env.jwtExpiresIn as jwt.SignOptions['expiresIn'],
-  });
+  const token = jwt.sign(
+    { sub: String(user.id), id: user.id, role: user.role },
+    env.jwtSecret,
+    { expiresIn: env.jwtExpiresIn as jwt.SignOptions['expiresIn'] }
+  );
 
   return {
     token,

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # \# Micro-Besoins — API (back-end)
 
 
@@ -211,7 +210,6 @@ src/
 
 Pour protéger une future route : `router.get('/...', authenticate, requireRole('administrateur'), handler)`.
 
-=======
 # Backend
 
 API REST de **Micro-Besoins** : Node.js, Express, TypeScript et PostgreSQL.
@@ -357,7 +355,6 @@ curl -X PATCH -H "Authorization: Bearer <token>" http://localhost:3000/api/admin
 - **Valeurs de statut :** `EN_ATTENTE`, `VALIDE`, `REFUSE`, `ECHOUE`, `OUVERT`, `TRAITE`, `ADMIN`… sont définies dans `src/utils/constants.ts`. Si l'équipe utilise d'autres valeurs, il suffit de les changer à cet endroit.
 - **Table `signalement` :** ajoutée à `database/schema.sql` pour ce ticket (elle n'existait pas).
 - **Requêtes SQL :** toujours paramétrées (`$1`, `$2`…), jamais de concaténation de texte, pour éviter les injections SQL.
->>>>>>> MB-36-developper-les-api-du-tableau-de-bord-administrateur
 
 ## Modification du schéma de la table paiement :
 Afin de gérer les paiements à la publication, la table paiement a été modifiée :

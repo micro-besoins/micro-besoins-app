@@ -1,4 +1,5 @@
 import { pool } from '../config/db';
+import { GIG_STATUS, PAYMENT_STATUS } from '../utils/constants';
 
 export interface GigFilters {
   keyword?: string;
@@ -72,6 +73,20 @@ export async function categoryExists(category: string): Promise<boolean> {
   return (rowCount ?? 0) > 0;
 }
 
+function gigSelect(capabilities: GigCapabilities): string {
+  const category = capabilities.hasCategory ? 'g.categorie' : 'NULL::text';
+  const location = capabilities.hasLocation ? 'g.localite' : 'NULL::text';
+  const requestedDate = capabilities.hasRequestedDate ? 'g.dateSouhaitee' : 'NULL::timestamp';
+  return `SELECT g.idgig AS id, g.titre AS title, g.description, g.budget::text AS budget,
+            g.datepublication AS "publishedAt", g.statusgig AS status,
+            ${category} AS category, ${location} AS location, ${requestedDate} AS "requestedAt",
+            u.idutilisateur AS "ownerId", u.nom AS "ownerLastName", u.prenom AS "ownerFirstName",
+            COUNT(r.idreponse)::int AS "proposalCount"
+     FROM gig g
+     LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
+     LEFT JOIN reponse r ON r.idgig = g.idgig`;
+}
+
 export async function findGigs(filters: GigFilters) {
   const capabilities = await getCapabilities();
   const values: string[] = [];
@@ -96,14 +111,7 @@ export async function findGigs(filters: GigFilters) {
   const requestedDate = capabilities.hasRequestedDate ? 'g.dateSouhaitee' : 'NULL::timestamp';
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const { rows } = await pool.query(
-    `SELECT g.idgig AS id, g.titre AS title, g.description, g.budget::text AS budget,
-            g.datepublication AS "publishedAt", g.statusgig AS status,
-            ${category} AS category, ${location} AS location, ${requestedDate} AS "requestedAt",
-            u.idutilisateur AS "ownerId", u.nom AS "ownerLastName", u.prenom AS "ownerFirstName",
-            COUNT(r.idreponse)::int AS "proposalCount"
-     FROM gig g
-     LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
-     LEFT JOIN reponse r ON r.idgig = g.idgig
+    `${gigSelect(capabilities)}
      ${where}
      GROUP BY g.idgig, u.idutilisateur
      ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC`,
@@ -112,15 +120,32 @@ export async function findGigs(filters: GigFilters) {
   return rows;
 }
 
+export async function findGigById(id: number, viewerId: number | null) {
+  const capabilities = await getCapabilities();
+  const { rows } = await pool.query(
+    `${gigSelect(capabilities)}
+     WHERE g.idgig = $1
+     GROUP BY g.idgig, u.idutilisateur`,
+    [id]
+  );
+  const gig = rows[0];
+  if (!gig) return null;
+ 
+  const isOwner = viewerId !== null && gig.ownerId === viewerId;
+  if (gig.status !== GIG_STATUS.VALIDATED && !isOwner) return null;
+ 
+  return { ...gig, isOwner };
+}
+
 export async function createGig(input: CreateGigInput) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows } = await client.query<{ id: number; title: string }>(
       `INSERT INTO gig (titre, description, budget, datePublication, dateModification, statusGig, categorie, localite, dateSouhaitee, idUtilisateur)
-       VALUES ($1, $2, $3, NOW(), NOW(), 'en_attente', $4, $5, $6, $7)
+       VALUES ($1, $2, $3, NOW(), NOW(), $8, $4, $5, $6, $7)
        RETURNING idGig AS id, titre AS title`,
-      [input.title, input.description, input.budget, input.category, input.location, input.requestedAt, input.ownerId]
+      [input.title, input.description, input.budget, input.category, input.location, input.requestedAt, input.ownerId, GIG_STATUS.PENDING]
     );
     await client.query(
       `INSERT INTO paiement (idgig, idutilisateur, methode, statuspaiement, montant)

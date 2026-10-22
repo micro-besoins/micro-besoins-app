@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { categoryExists, createGig, findGigs, getGigFilterOptions } from '../services/gig.service';
+import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -21,6 +21,26 @@ export async function listGigs(req: Request, res: Response, next: NextFunction) 
 export async function gigFilterOptions(_req: Request, res: Response, next: NextFunction) {
   try {
     res.json(await getGigFilterOptions());
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getGig(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ code: 'INVALID_PARAMETER', message: 'Identifiant de besoin invalide.' });
+      return;
+    }
+ 
+    const gig = await findGigById(id, req.user?.id ?? null);
+    if (!gig) {
+      res.status(404).json({ code: 'NOT_FOUND', message: 'Besoin introuvable.' });
+      return;
+    }
+ 
+    res.json({ gig });
   } catch (error) {
     next(error);
   }

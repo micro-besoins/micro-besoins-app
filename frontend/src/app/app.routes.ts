@@ -7,8 +7,8 @@ export const routes: Routes = [
   { path: 'mes-propositions', title: 'Mes propositions', data: { title: 'Mes propositions' }, loadComponent: () => import('./features/navigation/placeholder.page').then((m) => m.NavigationPlaceholderPage) },
   { path: 'messages', title: 'Messages', data: { title: 'Messages' }, loadComponent: () => import('./features/navigation/placeholder.page').then((m) => m.NavigationPlaceholderPage) },
   { path: 'auth', loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES) },
-  { path: '**', redirectTo: '' },
   { path: 'admin', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage)  },
   { path: 'admin/:section/:id', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
   { path: 'admin/:section', loadComponent: () => import('./features/auth/admin/admin.page').then(m => m.AdminPage) },
+  { path: '**', redirectTo: '' },
 ];
