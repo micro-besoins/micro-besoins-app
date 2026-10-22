@@ -1,0 +1,4 @@
+.eyebrow { margin:0 0 22px;font-size:15px;line-height:20px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--blue-600); }
+h2 { margin:0 0 17px;font-size:40px;font-weight:500;line-height:1.1;letter-spacing:-.04em; }.sub { margin:0 0 28px;font-size:20px;line-height:30px;color:var(--muted); }
+form { display:grid;gap:21px; }.fields { display:grid;gap:25px; }.switch { margin:28px 0 0;text-align:center;font-size:20px;line-height:30px;color:var(--muted); }.switch a { color:var(--blue-600);font-weight:700;text-decoration:none; }.switch a:hover { text-decoration:underline; }
+.message { margin:0 0 20px;padding:12px 14px;border-radius:var(--radius);font-size:15px; }.success { color:#126b35;background:#ecfdf3; }.error { color:var(--danger);background:#fef3f2; }
