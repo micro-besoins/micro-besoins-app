@@ -6,7 +6,7 @@ INSERT INTO gig (
   titre, description, budget, datePublication, dateModification, statusGig,
   categorie, localite, dateSouhaitee, idUtilisateur
 )
-SELECT seed.titre, seed.description, seed.budget, NOW(), NOW(), 'publie',
+SELECT seed.titre, seed.description, seed.budget, NOW(), NOW(), 'VALIDE',
        seed.categorie, seed.localite, seed.dateSouhaitee,
        (SELECT idUtilisateur FROM utilisateur ORDER BY idUtilisateur LIMIT 1)
 FROM (

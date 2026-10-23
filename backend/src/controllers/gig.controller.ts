@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions } from '../services/gig.service';
+import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions, reportGig } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -41,6 +41,29 @@ export async function getGig(req: Request, res: Response, next: NextFunction) {
     }
  
     res.json({ gig });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createGigReport(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ code: 'INVALID_PARAMETER', message: 'Identifiant de besoin invalide.' });
+      return;
+    }
+    if (reason.length < 5 || reason.length > 2000) {
+      res.status(400).json({ code: 'INVALID_REPORT', message: 'Le motif doit contenir entre 5 et 2 000 caractères.' });
+      return;
+    }
+    const report = await reportGig(id, req.user!.id, reason);
+    if (!report) {
+      res.status(404).json({ code: 'NOT_FOUND', message: 'Cette annonce ne peut pas être signalée.' });
+      return;
+    }
+    res.status(201).json({ report });
   } catch (error) {
     next(error);
   }

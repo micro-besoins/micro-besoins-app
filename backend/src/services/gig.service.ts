@@ -1,5 +1,5 @@
 import { pool } from '../config/db';
-import { GIG_STATUS, PAYMENT_STATUS } from '../utils/constants';
+import { GIG_STATUS, PAYMENT_STATUS, REPORT_STATUS } from '../utils/constants';
 
 export interface GigFilters {
   keyword?: string;
@@ -90,7 +90,7 @@ function gigSelect(capabilities: GigCapabilities): string {
 export async function findGigs(filters: GigFilters) {
   const capabilities = await getCapabilities();
   const values: string[] = [];
-  const conditions: string[] = [`g.statusgig = 'VALIDE'`];
+  const conditions: string[] = [`g.statusgig = '${GIG_STATUS.VALIDATED}'`];
   const add = (condition: string, value: string) => {
     values.push(value);
     conditions.push(condition.replace('?', `$${values.length}`));
@@ -134,7 +134,33 @@ export async function findGigById(id: number, viewerId: number | null) {
   const isOwner = viewerId !== null && gig.ownerId === viewerId;
   if (gig.status !== GIG_STATUS.VALIDATED && !isOwner) return null;
  
-  return { ...gig, isOwner };
+  const payments = isOwner
+    ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null }>(
+      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt"
+         FROM paiement
+        WHERE idgig = $1
+        ORDER BY idpaiement DESC`,
+      [id],
+    )).rows
+    : [];
+
+  return { ...gig, isOwner, payments };
+}
+
+export async function reportGig(id: number, reporterId: number, reason: string) {
+  const { rows: gigs } = await pool.query<{ status: string }>(
+    `SELECT statusgig AS status FROM gig WHERE idgig = $1`,
+    [id],
+  );
+  if (!gigs[0] || gigs[0].status !== GIG_STATUS.VALIDATED) return null;
+
+  const { rows } = await pool.query<{ id: number }>(
+    `INSERT INTO signalement (idgig, idutilisateur, motif, statussignalement, datesignalement)
+     VALUES ($1, $2, $3, $4, NOW())
+     RETURNING idsignalement AS id`,
+    [id, reporterId, reason, REPORT_STATUS.OPEN],
+  );
+  return rows[0];
 }
 
 export async function createGig(input: CreateGigInput) {
