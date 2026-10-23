@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
+import { isAdminUser } from '../auth/admin-role';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
 
 interface Gig {
@@ -38,6 +39,7 @@ export class HomePage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly user = signal<RegisteredUser | null>(this.auth.currentUser());
+  protected readonly isAdmin = isAdminUser(this.auth);
   protected readonly profileOpen = signal(false);
   protected readonly gigs = signal<Gig[]>([]);
   protected readonly filters = signal<FilterOptions>({ categories: [], locations: [], budgets: [] });
@@ -94,6 +96,11 @@ export class HomePage {
   protected logout(): void {
     this.auth.logout();
     void this.router.navigateByUrl('/auth/login');
+  }
+
+  protected goToAdmin(): void {
+    this.profileOpen.set(false);
+    void this.router.navigateByUrl('/admin');
   }
 
   protected toggleProfile(): void { this.profileOpen.update((open) => !open); }

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -16,11 +16,17 @@ import { AuthService } from '../auth.service';
   templateUrl: './login.page.html',
   styleUrl: './login.page.css',
 })
-export class LoginPage {
+export class LoginPage implements OnInit{
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-
+   
+  ngOnInit() {
+      if (this.auth.token()) {
+        this.router.navigate(['/']);
+    }
+  }
+  
   protected readonly features: AuthFeature[] = [
     { icon: 'check', title: 'Un seul compte', text: 'Demandez un service ou rendez service.' },
     { icon: 'chat', title: 'Des échanges simples', text: 'Tout votre suivi au même endroit.' },

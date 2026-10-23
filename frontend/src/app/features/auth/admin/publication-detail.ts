@@ -1,6 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
-import { Dossier } from './admin.data';
+import { Dossier } from './admin.types';
 
 @Component({
   selector:'app-publication-detail',
