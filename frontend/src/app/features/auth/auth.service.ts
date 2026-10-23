@@ -40,4 +40,24 @@ export class AuthService {
   login(payload: LoginPayload): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, payload);
   }
+
+  saveSession(response: LoginResponse): void {
+    localStorage.setItem('micro-besoins-token', response.token);
+    localStorage.setItem('micro-besoins-user', JSON.stringify(response.user));
+  }
+
+  token(): string | null {
+    return localStorage.getItem('micro-besoins-token');
+  }
+
+  currentUser(): RegisteredUser | null {
+    const raw = localStorage.getItem('micro-besoins-user');
+    if (!raw) return null;
+    try { return JSON.parse(raw) as RegisteredUser; } catch { return null; }
+  }
+
+  logout(): void {
+    localStorage.removeItem('micro-besoins-token');
+    localStorage.removeItem('micro-besoins-user');
+  }
 }

@@ -2,7 +2,7 @@
 <header class="header">
   <a class="brand" routerLink="/admin"><span class="logo">m</span> Micro-Besoins</a>
   <a class="nav" routerLink="/admin" aria-current="page">Administration</a>
-  <div class="profile"><span class="avatar">AD</span><div><strong>Admin démo</strong><small>Administration</small></div></div>
+  <div class="profile"><button class="avatar" type="button" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()" aria-label="Ouvrir le menu du profil">{{ initials(user()?.prenom ?? null, user()?.nom ?? null) }}</button><strong class="user-name">{{ user()?.prenom }}</strong>@if (profileOpen()) { <div class="profile-menu"><button type="button" (click)="goHome()">Retour à l’accueil</button><button type="button" (click)="logout()">Se déconnecter</button></div> }</div>
 </header>
 <main id="content" [class.consultation]="id()">
   @if (!id()) {
@@ -47,9 +47,5 @@
   }
 </main>
 @if (confirmation(); as c) {
-  <dialog #modal class="dialog" aria-labelledby="dialog-title" (cancel)="$event.preventDefault(); confirmation.set(null)"><h2 id="dialog-title">{{ c.action==='signaler' ? 'Signaler l’annonce' : c.action==='traiter' ? 'Traiter le signalement' : c.action==='refuser' ? 'Refuser le dossier' : 'Approuver le dossier' }}</h2><p>{{ c.item.title }}</p>@if (c.action==='traiter' || c.action==='signaler') { <label for="note">{{ c.action==='signaler' ? 'Motif du signalement (obligatoire)' : 'Résultat du traitement (obligatoire)' }}</label><textarea id="note" maxlength="2000" [value]="note()" (input)="note.set($any($event.target).value)"></textarea> }<p class="hint">Cette action est fictive.</p><div class="detail-actions"><button (click)="confirmation.set(null)">Annuler</button><button class="primary" [disabled]="((c.action==='traiter' || c.action==='signaler') && !note().trim())" (click)="confirm()">Confirmer</button></div></dialog>
+  <dialog #modal class="dialog" aria-labelledby="dialog-title" (cancel)="$event.preventDefault(); confirmation.set(null)"><h2 id="dialog-title">{{ c.action==='signaler' ? 'Signaler l’annonce' : c.action==='traiter' ? 'Traiter le signalement' : c.action==='refuser' ? 'Refuser le dossier' : 'Approuver le dossier' }}</h2><p>{{ c.item.title }}</p>@if (c.action==='traiter' || c.action==='signaler') { <label for="note">{{ c.action==='signaler' ? 'Motif du signalement (obligatoire)' : 'Résultat du traitement (obligatoire)' }}</label><textarea id="note" maxlength="2000" [value]="note()" (input)="note.set($any($event.target).value)"></textarea> }<div class="detail-actions"><button (click)="confirmation.set(null)">Annuler</button><button class="primary" [disabled]="((c.action==='traiter' || c.action==='signaler') && !note().trim())" (click)="confirm()">Confirmer</button></div></dialog>
 }
-
-
-
-

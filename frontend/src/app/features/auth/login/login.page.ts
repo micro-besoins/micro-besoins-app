@@ -43,7 +43,10 @@ export class LoginPage {
 
     this.submitting.set(true);
     this.auth.login(this.form.getRawValue()).pipe(finalize(() => this.submitting.set(false))).subscribe({
-      next: () => void this.router.navigateByUrl('/auth/connected'),
+      next: (response) => {
+        this.auth.saveSession(response);
+        void this.router.navigateByUrl('/');
+      },
       error: (error: HttpErrorResponse) => this.errorMessage.set(
         error.status === 401 ? 'Email ou mot de passe incorrect.' : 'Impossible de se connecter. Veuillez réessayer.'
       ),
