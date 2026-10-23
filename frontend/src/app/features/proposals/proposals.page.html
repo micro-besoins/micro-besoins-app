@@ -1,0 +1,82 @@
+<header class="topbar">
+  <a routerLink="/" class="brand"><span class="logo">m</span><span>Micro-Besoins</span></a>
+  <nav aria-label="Navigation principale">
+    <a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a>
+    <a routerLink="/mes-propositions" class="active" aria-current="page">Mes propositions</a><a routerLink="/messages">Messages</a>
+  </nav>
+  <div class="header-actions">
+    <div class="popover-anchor">
+      <button type="button" class="notification" aria-label="Notifications des propositions" [attr.aria-expanded]="notificationsOpen()" aria-controls="notifications" (click)="toggleNotifications()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+        @if (updates().length) { <b>{{ updates().length }}</b> }
+      </button>
+      @if (notificationsOpen()) {
+        <section class="popover notifications" id="notifications" aria-label="Notifications"><strong>Vos propositions</strong>
+          @for (proposal of updates(); track proposal.id) { <button type="button" (click)="open('need', proposal)">{{ proposal.title }}<small>{{ statusLabel(proposal.status) }}</small></button> }
+          @empty { <p>Aucune nouvelle réponse à vos propositions.</p> }
+        </section>
+      }
+    </div>
+    <a routerLink="/publier-un-besoin" class="publish"><span aria-hidden="true">＋</span> Publier un besoin</a>
+    <div class="popover-anchor">
+      <button type="button" class="profile-button" [attr.aria-expanded]="profileOpen()" aria-controls="profile-menu" (click)="toggleProfile()" aria-label="Ouvrir le menu du compte">
+        <span class="avatar">{{ initials(user?.prenom, user?.nom) }}</span><strong>{{ user?.prenom }}</strong>
+      </button>
+      @if (profileOpen()) { <div class="popover" id="profile-menu"><strong>{{ user?.prenom }} {{ user?.nom }}</strong>@if (user?.role === 'ADMIN') { <a routerLink="/admin">Tableau de bord</a> }<button type="button" (click)="logout()">Se déconnecter</button></div> }
+    </div>
+  </div>
+</header>
+
+<main>
+  <p class="eyebrow">Votre activité</p>
+  <h1>Mes propositions</h1>
+  <p class="intro">Retrouvez toutes les offres de service que vous avez envoyées.</p>
+  @if (notice()) { <div class="success" role="status">{{ notice() }}<button type="button" (click)="notice.set('')" aria-label="Fermer la confirmation">×</button></div> }
+  <section class="proposal-list" aria-label="Propositions envoyées" [attr.aria-busy]="loading()">
+    @if (loading()) { <div class="state" role="status">Chargement de vos propositions…</div> }
+    @else if (error()) { <div class="state" role="alert"><p>{{ error() }}</p><button type="button" class="outline" (click)="load()">Réessayer</button></div> }
+    @else {
+      @for (proposal of proposals(); track proposal.id) {
+        <article class="proposal-card" [attr.aria-labelledby]="'proposal-' + proposal.id">
+          <span class="avatar owner-avatar" aria-hidden="true">{{ initials(proposal.ownerFirstName, proposal.ownerLastName) }}</span>
+          <div class="proposal-info">
+            <div class="category-status"><span class="category">{{ proposal.category || 'Besoin' }}</span><span class="badge" [attr.data-status]="proposal.status">{{ statusLabel(proposal.status) }}</span></div>
+            <h2 [id]="'proposal-' + proposal.id">{{ proposal.title }}</h2>
+            <p class="owner">Publié par {{ owner(proposal) }}</p>
+            <p class="sent-date">@if (proposal.sentAt) { Envoyée le <time [attr.datetime]="proposal.sentAt">{{ proposal.sentAt | date:'dd/MM/yyyy à HH:mm' }}</time> } @else { Date d’envoi non renseignée }</p>
+          </div>
+          <div class="rate"><span>Votre tarif</span><strong>@if (proposal.amount !== null) { Rs {{ proposal.amount | number:'1.0-2' }} } @else { Non renseigné }</strong></div>
+          <div class="card-actions">
+            <button type="button" class="outline" (click)="open('need', proposal)" [attr.aria-label]="'Consulter le besoin : ' + proposal.title">Consulter le besoin</button>
+            <button type="button" class="text-button" (click)="open('profile', proposal)" [attr.aria-label]="'Voir le profil de ' + owner(proposal)">Voir le profil</button>
+            @if (proposal.status === 'EN_ATTENTE') { <button type="button" class="danger" (click)="open('withdraw', proposal)" [attr.aria-label]="'Retirer la proposition pour ' + proposal.title">Retirer</button> }
+          </div>
+        </article>
+      } @empty {
+        <div class="state empty"><span class="empty-icon" aria-hidden="true">↗</span><h2>Aucune proposition pour le moment</h2><p>Proposez vos services sur un besoin pour le retrouver ici et suivre son statut.</p><a routerLink="/" class="publish">Explorer les besoins</a></div>
+      }
+    }
+  </section>
+</main>
+
+<dialog #detailDialog (cancel)="cancelDialog($event)" aria-labelledby="dialog-title">
+  <div class="dialog-heading"><h2 id="dialog-title">{{ dialogKind() === 'withdraw' ? 'Retirer ma proposition' : dialogKind() === 'profile' ? 'Profil du demandeur' : 'Consulter le besoin' }}</h2><button type="button" class="close" aria-label="Fermer" [disabled]="saving()" (click)="closeDialog()">×</button></div>
+  @if (dialogKind() === 'withdraw') {
+    <p>Voulez-vous retirer votre proposition pour <strong>« {{ selected()?.title }} »</strong> ?</p><p class="muted">Elle restera dans votre historique avec le statut « Retirée ». Cette action est définitive.</p>
+    @if (dialogError()) { <p class="dialog-error" role="alert">{{ dialogError() }}</p> }
+    <div class="dialog-actions"><button type="button" class="outline" [disabled]="saving()" (click)="closeDialog()">Annuler</button><button type="button" class="danger" [disabled]="saving() || !canWithdraw()" (click)="withdraw()">{{ saving() ? 'Retrait en cours…' : 'Confirmer le retrait' }}</button></div>
+  } @else {
+    @if (dialogLoading()) { <p role="status">Chargement…</p> }
+    @else if (dialogError()) { <div role="alert"><p class="dialog-error">{{ dialogError() }}</p><button type="button" class="outline" (click)="loadDetail()">Réessayer</button></div> }
+    @else if (dialogKind() === 'need') {
+      @if (need(); as gig) {
+        <p class="eyebrow">{{ gig.category || 'Besoin' }}</p><h3>{{ gig.title }}</h3><p class="need-description">{{ gig.description }}</p>
+        <dl><div><dt>Publié par</dt><dd>{{ gig.ownerFirstName }} {{ gig.ownerLastName }}</dd></div><div><dt>Budget du besoin</dt><dd>Rs {{ gig.budget | number:'1.0-2' }}</dd></div><div><dt>Localité</dt><dd>{{ gig.location || 'Non renseignée' }}</dd></div><div><dt>Date souhaitée</dt><dd>{{ gig.requestedAt ? (gig.requestedAt | date:'dd/MM/yyyy') : 'Non renseignée' }}</dd></div><div><dt>Statut du besoin</dt><dd>{{ needStatus(gig.status) }}</dd></div></dl>
+        <section class="your-proposal"><h3>Votre proposition</h3><p class="need-description">{{ selected()?.content }}</p><span class="badge" [attr.data-status]="selected()?.status">{{ statusLabel(selected()?.status ?? null) }}</span></section>
+      }
+    } @else if (ownerProfile(); as profile) {
+      <div class="profile-detail"><span class="avatar large">{{ initials(profile.firstName, profile.lastName) }}</span><h3>{{ profile.firstName }} {{ profile.lastName }}</h3><p class="muted">Membre de Micro-Besoins</p><p>{{ profile.publishedCount }} besoin{{ profile.publishedCount > 1 ? 's' : '' }} publié{{ profile.publishedCount > 1 ? 's' : '' }}</p></div>
+    }
+    <div class="dialog-actions"><button type="button" class="outline" (click)="closeDialog()">Fermer</button></div>
+  }
+</dialog>
