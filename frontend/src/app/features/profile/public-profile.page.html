@@ -1,0 +1,50 @@
+<header class="topbar">
+  <a routerLink="/" class="brand"><span class="logo">m</span>Micro-Besoins</a>
+  <nav aria-label="Navigation principale"><a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions">Mes propositions</a><a routerLink="/messages">Messages</a></nav>
+  <div class="actions"><a class="publish" routerLink="/publier-un-besoin">＋ <span>Publier un besoin</span></a>
+    @if (user; as current) { <a class="account" [routerLink]="['/profil', current.id]"><span class="avatar small">{{ initials(current.prenom, current.nom) }}</span><strong>{{ current.prenom }}</strong></a> }
+    @else { <a routerLink="/auth/login">Se connecter</a> }
+  </div>
+</header>
+<main>
+  <a routerLink="/" class="back">‹ <span>Retour</span></a>
+  @if (loading()) { <p class="state" role="status">Chargement du profil…</p> }
+  @else if (error()) { <div class="state" role="alert"><h1>{{ error() }}</h1><button type="button" (click)="reload()">Réessayer</button></div> }
+  @else if (profile(); as person) {
+    <section class="identity" aria-labelledby="profile-name">
+      <span class="avatar large" aria-hidden="true">{{ initials(person.firstName, person.lastName) }}</span>
+      <div><p class="eyebrow">Profil public</p><h1 id="profile-name">{{ person.firstName }} {{ person.lastName }}</h1>
+        <p class="location">@if (person.location) { <span><ng-icon name="lucideMapPin" aria-hidden="true"/> {{ person.location }}</span> }@if (person.location && person.joinedAt) { <span> · </span> }@if (person.joinedAt) { <span>Membre depuis {{ date(person.joinedAt, true) }}</span> }</p>
+        @if (person.biography) { <p class="biography">{{ person.biography }}</p> }
+        <div class="skills">@for (skill of person.skills; track skill) { <span>{{ skill }}</span> }</div>
+      </div>
+    </section>
+    <section class="stats" aria-label="Statistiques du profil">
+      <div><strong>{{ person.provider.completedCount }}</strong><span>Services accomplis</span></div>
+      <div><strong>{{ person.requester.completedCount }}</strong><span>Besoins terminés</span></div>
+      <div><strong>{{ rating(person.provider.averageRating) }}</strong><span>{{ person.provider.reviewCount ? person.provider.reviewCount + ' avis prestataire' : 'Aucun avis prestataire' }}</span></div>
+      <div><strong>{{ rating(person.requester.averageRating) }}</strong><span>{{ person.requester.reviewCount ? person.requester.reviewCount + ' avis demandeur' : 'Aucun avis demandeur' }}</span></div>
+    </section>
+    <div class="tabs" role="tablist" aria-label="Activité du profil">
+      <button #providerTab id="provider-tab" role="tab" aria-controls="activities" [attr.aria-selected]="role() === 'prestataire'" [attr.tabindex]="role() === 'prestataire' ? 0 : -1" [class.active]="role() === 'prestataire'" (click)="role.set('prestataire')" (keydown.arrowright)="role.set('demandeur'); requesterTab.focus()">Services accomplis</button>
+      <button #requesterTab id="requester-tab" role="tab" aria-controls="activities" [attr.aria-selected]="role() === 'demandeur'" [attr.tabindex]="role() === 'demandeur' ? 0 : -1" [class.active]="role() === 'demandeur'" (click)="role.set('demandeur')" (keydown.arrowleft)="role.set('prestataire'); providerTab.focus()">Besoins publiés</button>
+    </div>
+    <section id="activities" role="tabpanel" tabindex="0" [attr.aria-labelledby]="role() === 'prestataire' ? 'provider-tab' : 'requester-tab'">
+      <div class="section-heading"><h2>{{ role() === 'prestataire' ? 'Services accomplis' : 'Besoins terminés' }}</h2>
+        @if (stats(); as summary) { <div class="average">Note moyenne en tant que {{ role() }} : <strong>{{ rating(summary.averageRating) }}@if (summary.reviewCount) { / 5 ({{ summary.reviewCount }} avis) }</strong>
+          @if (summary.averageRating !== null) { <span class="stars" role="img" [attr.aria-label]="rating(summary.averageRating) + ' sur 5'"><span class="star-base">★★★★★</span><span class="star-fill" [style.width.%]="summary.averageRating * 20">★★★★★</span></span> }
+        </div> }
+      </div>
+      @if (!stats()?.reviewCount) { <p class="empty-reviews">Aucune évaluation n’est disponible pour ce profil en tant que {{ role() }}.</p> }
+      @for (activity of activities(); track activity.id) {
+        <article class="activity"><div class="activity-info"><p class="category">{{ activity.category || 'Service' }}</p><h3>{{ activity.title }}</h3><p class="completed">{{ activity.completedAt ? 'Réalisé le ' + date(activity.completedAt) : 'Service terminé' }}</p></div>
+          <div class="reviews">@for (review of activity.reviews; track review.id) {
+            <div class="review"><span class="review-stars" role="img" [attr.aria-label]="review.rating + ' sur 5'">@for (star of stars; track star) { <span [class.filled]="star <= review.rating" aria-hidden="true">★</span> }</span>
+              @if (review.comment) { <blockquote>“{{ review.comment }}”</blockquote> }
+            </div>
+          } @empty { <p class="no-review">Aucune évaluation pour ce service.</p> }</div>
+        </article>
+      } @empty { <p class="state">{{ role() === 'prestataire' ? 'Aucun service accompli pour le moment.' : 'Aucun besoin terminé pour le moment.' }}</p> }
+    </section>
+  }
+</main>

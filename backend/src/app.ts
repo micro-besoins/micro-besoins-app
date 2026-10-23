@@ -7,6 +7,9 @@ import gigRoutes from './routes/gig.routes';
 import paymentRoutes from './routes/payment.routes';
 import { notFound } from './middleware/not-found';
 import routes from './routes';
+import profileRoutes from './routes/profile.routes';
+import { authenticate } from './middleware/auth.middleware';
+import { findMyProposals } from './services/profile.service';
 
 const app = express();
 
@@ -16,6 +19,11 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/gigs', gigRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/users', profileRoutes);
+app.get('/api/proposals/mine', authenticate, async (req, res, next) => {
+  try { res.json({ proposals: await findMyProposals(req.user!.id) }); }
+  catch (error) { next(error); }
+});
 
 app.use(errorHandler);
 

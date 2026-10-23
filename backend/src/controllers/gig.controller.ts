@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
+import { findGigProposals } from '../services/profile.service';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
 
@@ -40,7 +41,7 @@ export async function getGig(req: Request, res: Response, next: NextFunction) {
       return;
     }
  
-    res.json({ gig });
+    res.json({ gig, proposals: gig.isOwner ? await findGigProposals(id) : [] });
   } catch (error) {
     next(error);
   }

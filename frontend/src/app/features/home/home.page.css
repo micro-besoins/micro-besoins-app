@@ -70,3 +70,4 @@ main { max-width:1660px; margin:0 auto; padding:45px 58px 80px; }.hero { margin-
   nav a { font-size:11px; }
   .hero h1 { font-size:29px; }
 }
+.owner a { color:#0a2755; font-size:15px; font-weight:700; text-decoration:none; }.owner a:hover { text-decoration:underline; }.detail-link { display:flex; align-items:center; justify-content:center; min-height:56px; border-radius:10px; text-decoration:none; font-size:18px; font-weight:800; }
