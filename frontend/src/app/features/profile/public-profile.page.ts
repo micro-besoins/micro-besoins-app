@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, combineLatest, of, Subject, startWith, switchMap, tap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -11,7 +11,7 @@ interface Stats { completedCount: number; reviewCount: number; averageRating: nu
 interface Review { id: number; rating: number; comment: string | null; createdAt: string | null; }
 interface Activity { id: number; title: string; category: string | null; completedAt: string | null; role: string; reviews: Review[]; }
 interface PublicProfile {
-  id: number; firstName: string; lastName: string; location: string | null;
+  id: number; firstName: string; lastName: string; publicName: string; location: string | null;
   biography: string | null; joinedAt: string | null; skills: string[];
   provider: Stats; requester: Stats; activities: Activity[];
 }
@@ -23,10 +23,15 @@ interface PublicProfile {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicProfilePage {
+  readonly profileId = input<number | null>(null);
+  readonly editable = input(false);
+  readonly refreshVersion = input(0);
+  readonly editRequested = output<void>();
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly refresh = new Subject<void>();
-  protected readonly user = inject(AuthService).currentUser();
+  private readonly auth = inject(AuthService);
+  protected get user() { return this.auth.currentUser(); }
   protected readonly profile = signal<PublicProfile | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -35,9 +40,9 @@ export class PublicProfilePage {
   protected readonly activities = computed(() => this.profile()?.activities.filter((item) => item.role === this.role()) ?? []);
   protected readonly stats = computed(() => this.role() === 'prestataire' ? this.profile()?.provider : this.profile()?.requester);
   constructor() {
-    combineLatest([this.route.paramMap, this.refresh.pipe(startWith(undefined))]).pipe(
+    combineLatest([this.route.paramMap, this.refresh.pipe(startWith(undefined)), toObservable(this.profileId), toObservable(this.refreshVersion)]).pipe(
       tap(() => { this.loading.set(true); this.error.set(''); this.profile.set(null); this.role.set('prestataire'); }),
-      switchMap(([params]) => this.http.get<{ profile: PublicProfile }>(`http://localhost:3000/api/users/${encodeURIComponent(params.get('id') ?? '')}/public`).pipe(
+      switchMap(([params, , profileId]) => this.http.get<{ profile: PublicProfile }>(`http://localhost:3000/api/users/${encodeURIComponent(profileId ?? params.get('id') ?? '')}/public`).pipe(
         catchError((error: HttpErrorResponse) => {
           this.error.set(error.status === 404 ? 'Profil introuvable.' : error.status === 400 ? 'Identifiant de profil invalide.' : 'Impossible de charger ce profil. Veuillez réessayer.');
           return of(null);

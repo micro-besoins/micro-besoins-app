@@ -35,6 +35,7 @@ describe('Profil public : données PostgreSQL et API HTTP', { skip: !connectionS
     const migration = await readFile(new URL('../src/db/ajout-profil-public.sql', import.meta.url), 'utf8');
     await pool.query(migration);
     await pool.query(migration); // Migration réexécutable.
+    await pool.query(await readFile(new URL('../src/db/ajout-profil.sql', import.meta.url), 'utf8'));
     const { rows } = await pool.query(`INSERT INTO utilisateur (nom, prenom, email, motdepasse, roleutilisateur)
       VALUES ('Ram dass', 'Kevin', 'private-provider@example.com', 'private-hash', 'prospect'),
       ('Test', 'Sophie', 'private-requester@example.com', 'private-hash', 'demandeur'),
@@ -82,7 +83,7 @@ describe('Profil public : données PostgreSQL et API HTTP', { skip: !connectionS
 
   it('renvoie seulement les champs publics, sans authentification', async () => {
     const result = await profile(providerId);
-    assert.deepEqual(Object.keys(result).sort(), ['id', 'firstName', 'lastName', 'location', 'biography', 'joinedAt', 'skills', 'provider', 'requester', 'activities'].sort());
+    assert.deepEqual(Object.keys(result).sort(), ['id', 'firstName', 'lastName', 'publicName', 'location', 'biography', 'joinedAt', 'skills', 'provider', 'requester', 'activities'].sort());
     assert.equal(result.location, 'Moka');
     assert.deepEqual(result.skills, ['Aide informatique']);
     assert.doesNotMatch(JSON.stringify(result), /private-|email|motdepasse|budget|Description privée/);

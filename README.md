@@ -34,6 +34,11 @@ Les relations sont assurées par des clés étrangères (`FOREIGN KEY`). La règ
 
 ## Installation et création
 
+Pour faire fonctionner la modification du profil, exécutez dans PostgreSQL, dans cet ordre :
+
+1. `backend/src/db/ajout-profil-public.sql` si la migration du profil public n'a pas encore été appliquée.
+2. `backend/src/db/ajout-profil.sql` pour ajouter le champ `nompublic`.
+
 La table `utilisateur` utilise la colonne `motdepasse`, qui contient le hash bcrypt (jamais le mot de passe en clair). Le champ de l'API reste nommé `password`. Pour une base existante utilisant encore `password`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
 
 ### Initialiser les catégories

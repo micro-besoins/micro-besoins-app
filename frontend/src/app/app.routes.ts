@@ -1,6 +1,10 @@
 import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './features/auth/auth.service';
 
 export const routes: Routes = [
+  { path: 'mon-profil', title: 'Mon profil — Micro-Besoins', canActivate: [() => inject(AuthService).token() ? true : inject(Router).createUrlTree(['/auth/login'])], loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage) },
   { path: 'profil/:id', title: 'Profil public · Micro-Besoins', loadComponent: () => import('./features/profile/public-profile.page').then((m) => m.PublicProfilePage) },
   { path: 'besoins/:id', title: 'Détail du besoin', loadComponent: () => import('./features/profile/profile-context.page').then((m) => m.ProfileContextPage) },
   { path: '', title: 'Micro-Besoins', loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage) },
