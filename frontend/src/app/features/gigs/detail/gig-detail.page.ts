@@ -213,10 +213,10 @@ export class GigDetailPage {
         { message: `${msg}\n\nDisponibilités : ${availability}`, montant: amount }, 
         { headers: this.headers() }
         ).subscribe({
-        next: ({ conversation }) => {
+        next: () => {
             this.submittingProposal.set(false);
             this.closeProposal();
-            void this.router.navigate(['/messages'], { queryParams: { conversation: conversation.id } });
+            this.notify('Votre proposition a été envoyée. Vous pouvez retrouver la conversation dans Messages.');
         },
         error: (err) => {
             this.submittingProposal.set(false);

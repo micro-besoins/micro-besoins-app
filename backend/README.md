@@ -42,7 +42,8 @@ Exécutez les scripts SQL dans cet ordre sur une nouvelle base :
 4. `src/db/ajout-notification.sql` — crée la table `notification` utilisée par les routes de notifications.
 5. `src/db/ajout-messagerie.sql` — crée les tables `conversation` et `message` pour la messagerie.
 6. `src/db/ajout-signalement-message.sql` — crée la table `signalement_message` pour les contenus signalés.
-7. `src/db/jeu-de-donnees-demo.sql` — facultatif, ajoute des données de démonstration.
+7. `src/db/ajout-frais-publication-existants.sql` — ajoute les frais de Rs 75 manquants et confirme ceux restés en attente pour les annonces déjà validées.
+8. `src/db/jeu-de-donnees-demo.sql` — facultatif, ajoute des données de démonstration.
 
 Les scripts 3 et 4 peuvent être exécutés sans risque plusieurs fois : ils ne suppriment aucune donnée.
 

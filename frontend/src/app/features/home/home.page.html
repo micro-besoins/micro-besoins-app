@@ -168,6 +168,10 @@
   </section>
 </main>
 
+@if (proposalSuccess()) {
+  <p class="proposal-success" role="status">{{ proposalSuccess() }}</p>
+}
+
 @if (proposalGig(); as gig) {
   <div class="proposal-backdrop" (click)="closeProposal()">
     <section class="proposal-modal" role="dialog" aria-modal="true" aria-labelledby="proposal-title" (click)="$event.stopPropagation()">

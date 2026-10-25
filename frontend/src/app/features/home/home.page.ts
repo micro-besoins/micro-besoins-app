@@ -31,7 +31,7 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
   imports: [FormsModule, RouterLink, NgIcon],
   providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
-  styleUrls: ['./home.page.css', './home-proposal-modal.css'],
+  styleUrls: ['./home.page.css', './home-proposal-modal.css', './home-proposal-success.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
@@ -60,6 +60,7 @@ export class HomePage {
   protected readonly proposalAmount = signal('');
   protected readonly proposalAvailability = signal('');
   protected readonly proposalError = signal('');
+  protected readonly proposalSuccess = signal('');
   protected readonly submittingProposal = signal(false);
   protected readonly countLabel = computed(() => `${this.gigs().length} annonce${this.gigs().length > 1 ? 's' : ''}`);
 
@@ -81,6 +82,7 @@ export class HomePage {
     event.stopPropagation();
     this.proposalGig.set(gig);
     this.proposalError.set('');
+    this.proposalSuccess.set('');
   }
 
   protected closeProposal(): void {
@@ -107,11 +109,11 @@ export class HomePage {
       message: `${message}\n\nDisponibilités : ${availability}`,
       montant: amount,
     }, { headers: this.headers() }).subscribe({
-      next: ({ conversation }) => {
+      next: () => {
         this.gigs.update((gigs) => gigs.map((item) => item.id === gig.id ? { ...item, proposalCount: item.proposalCount + 1 } : item));
         this.submittingProposal.set(false);
         this.closeProposal();
-        void this.router.navigate(['/messages'], { queryParams: { conversation: conversation.id } });
+        this.proposalSuccess.set('Proposition envoyée. La conversation est disponible dans Messages.');
       },
       error: (error: HttpErrorResponse) => {
         this.submittingProposal.set(false);
