@@ -8,3 +8,5 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body { font-family: var(--font); color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+
+:root { --page-max-width: 1660px; --page-padding: 58px; }

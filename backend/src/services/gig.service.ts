@@ -73,7 +73,7 @@ export async function categoryExists(category: string): Promise<boolean> {
   return (rowCount ?? 0) > 0;
 }
 
-function gigSelect(capabilities: GigCapabilities): string {
+function gigSelect(capabilities: GigCapabilities, viewerParam = 'NULL'): string {
   const category = capabilities.hasCategory ? 'g.categorie' : 'NULL::text';
   const location = capabilities.hasLocation ? 'g.localite' : 'NULL::text';
   const requestedDate = capabilities.hasRequestedDate ? 'g.dateSouhaitee' : 'NULL::timestamp';
@@ -81,16 +81,17 @@ function gigSelect(capabilities: GigCapabilities): string {
             g.datepublication AS "publishedAt", g.statusgig AS status,
             ${category} AS category, ${location} AS location, ${requestedDate} AS "requestedAt",
             u.idutilisateur AS "ownerId", u.nom AS "ownerLastName", u.prenom AS "ownerFirstName",
-            COUNT(r.idreponse)::int AS "proposalCount"
+            COUNT(r.idreponse)::int AS "proposalCount",
+            EXISTS (SELECT 1 FROM reponse mine WHERE mine.idgig = g.idgig AND mine.idutilisateur = ${viewerParam}) AS "hasProposed"
      FROM gig g
      LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
      LEFT JOIN reponse r ON r.idgig = g.idgig`;
 }
 
-export async function findGigs(filters: GigFilters) {
+export async function findGigs(filters: GigFilters, viewerId: number) {
   const capabilities = await getCapabilities();
-  const values: string[] = [];
-  const conditions: string[] = [`g.statusgig = 'VALIDE'`];
+  const values: string[] = [String(viewerId)];
+  const conditions: string[] = [`(g.statusgig = 'VALIDE' OR (g.idutilisateur = $1 AND g.statusgig = 'EN_COURS'))`];
   const add = (condition: string, value: string) => {
     values.push(value);
     conditions.push(condition.replace('?', `$${values.length}`));
@@ -111,7 +112,7 @@ export async function findGigs(filters: GigFilters) {
   const requestedDate = capabilities.hasRequestedDate ? 'g.dateSouhaitee' : 'NULL::timestamp';
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const { rows } = await pool.query(
-    `${gigSelect(capabilities)}
+    `${gigSelect(capabilities, '$1')}
      ${where}
      GROUP BY g.idgig, u.idutilisateur
      ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC`,
@@ -123,10 +124,10 @@ export async function findGigs(filters: GigFilters) {
 export async function findGigById(id: number, viewerId: number | null) {
   const capabilities = await getCapabilities();
   const { rows } = await pool.query(
-    `${gigSelect(capabilities)}
+    `${gigSelect(capabilities, '$2')}
      WHERE g.idgig = $1
      GROUP BY g.idgig, u.idutilisateur`,
-    [id]
+    [id, viewerId]
   );
   const gig = rows[0];
   if (!gig) return null;

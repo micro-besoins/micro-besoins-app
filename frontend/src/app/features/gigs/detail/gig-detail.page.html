@@ -1,0 +1,62 @@
+<app-site-header />
+<main>
+  <a routerLink="/" class="back">‹ Retour à Explorer</a>
+  @if (loading()) { <p class="state" role="status">Chargement du besoin et des propositions…</p> }
+  @if (error()) { <p class="state error" role="alert">{{ error() }} <button type="button" (click)="load()" [disabled]="busy()">Actualiser</button></p> }
+  @if (feedback()) { <p class="state success" role="status">{{ feedback() }}</p> }
+  @if (!loading()) { @if (gig(); as g) {
+    <div class="layout">
+      <article class="panel detail">
+        <div class="heading"><span class="eyebrow">{{ g.category || 'Besoin' }}</span><span class="status">{{ status(g.status) }}</span></div>
+        <h1>{{ g.title }}</h1>
+        <div class="person"><span class="avatar">{{ initials(g.ownerFirstName, g.ownerLastName) }}</span><div><small>Publié par</small><strong>{{ g.ownerFirstName }} {{ g.ownerLastName }}</strong></div></div>
+        <dl class="facts"><div><dt>Lieu</dt><dd>{{ g.location || 'Non renseigné' }}</dd></div><div><dt>Budget indicatif</dt><dd>{{ money(g.budget) }}</dd></div><div><dt>Date souhaitée</dt><dd>{{ date(g.requestedAt) }}</dd></div></dl>
+        <section class="description"><h2>Description du besoin</h2><p>{{ g.description }}</p></section>
+        @if (g.isOwner) {
+          <section id="propositions" aria-labelledby="proposals-title">
+            <div class="section-heading"><div><h2 id="proposals-title">Propositions reçues <span class="count">{{ proposals().length }}</span></h2><p class="muted">{{ pendingCount() }} en attente</p></div>
+              @if (proposals().length > 1) { <label>Trier par<select [ngModel]="sort()" (ngModelChange)="sort.set($event)"><option value="recent">Plus récentes</option><option value="amount">Montant croissant</option></select></label> }
+            </div>
+            @if (!proposals().length) { <div class="empty"><h3>Aucune proposition reçue pour le moment.</h3><p>Les propositions des prestataires apparaîtront ici.</p></div> }
+            <div class="proposals" aria-live="polite">
+              @for (p of sortedProposals(); track p.id) {
+                <article class="proposal" [class.accepted]="p.status === 'ACCEPTEE'">
+                  <div class="proposal-heading"><div class="person"><span class="avatar">{{ initials(p.firstName, p.lastName) }}</span><div><h3>{{ p.firstName }} {{ p.lastName }}</h3><small>Envoyée le {{ date(p.createdAt) }}</small></div></div><span class="status" [class.pending]="p.status === 'EN_ATTENTE'" [class.refused]="p.status === 'REFUSEE'">{{ status(p.status) }}</span></div>
+                  <dl class="offer-facts"><div><dt>Montant proposé</dt><dd class="amount">{{ money(p.amount) }}</dd></div><div><dt>Disponibilité</dt><dd>{{ p.availability || 'Non renseignée' }}</dd></div></dl>
+                  <p class="message">{{ p.message }}</p>
+                  <div class="proposal-actions"><button type="button" class="profile-link" (click)="showProfile(p)">Voir le profil public</button>
+                    @if (p.status === 'EN_ATTENTE' && g.status === 'VALIDE' && !selected()) { <button type="button" class="secondary danger" [disabled]="busy()" (click)="confirmation.set({ proposal: p, decision: 'refuse' })">Refuser</button><button type="button" class="primary" [disabled]="busy()" (click)="confirmation.set({ proposal: p, decision: 'accept' })">Accepter</button> }
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        } @else {
+          <section><h2>Proposer mes services</h2>
+            @if (g.hasProposed) { <p class="state success">Vous avez déjà envoyé une proposition pour ce besoin.</p> }
+            @else if (g.status === 'VALIDE') { <form #proposalForm="ngForm" (ngSubmit)="submit()" class="proposal-form"><label>Montant proposé (Rs)<input name="amount" type="number" min="0.01" max="99999.99" step="0.01" required [(ngModel)]="amount"></label><label>Disponibilité<input name="availability" required maxlength="500" [(ngModel)]="availability" placeholder="Ex. : samedi matin, à partir de 9 h"></label><label>Message<textarea name="message" required maxlength="5000" rows="5" [(ngModel)]="message"></textarea></label><button class="primary" type="submit" [disabled]="proposalForm.invalid || !availability.trim() || !message.trim() || busy()">{{ busy() ? 'Envoi…' : 'Envoyer ma proposition' }}</button></form> }
+          </section>
+        }
+      </article>
+      <aside class="panel summary"><p class="eyebrow">{{ g.isOwner ? 'Votre besoin' : 'Service de proximité' }}</p><h2>{{ g.isOwner ? 'Choisissez votre prestataire' : 'Une proposition adaptée' }}</h2><p>{{ g.isOwner ? 'Comparez les montants, les disponibilités et les messages avant de faire votre choix.' : 'Précisez votre tarif et vos disponibilités pour aider le demandeur à faire son choix.' }}</p>
+        @if (selected(); as p) { <div class="selection"><span class="status">Proposition acceptée</span><h3>{{ p.firstName }} {{ p.lastName }}</h3><strong>{{ money(p.amount) }}</strong><p>{{ p.availability || 'Disponibilité à convenir' }}</p><button class="profile-link" (click)="showProfile(p)">Voir le profil public</button></div> }
+        @else if (g.isOwner) { <p class="hint">En acceptant une proposition, le besoin passe « En cours » et les autres propositions en attente sont automatiquement refusées.</p> }
+      </aside>
+    </div>
+  } }
+</main>
+@if (confirmation(); as c) {
+  <dialog #decisionDialog class="modal" aria-labelledby="decision-title" (cancel)="$event.preventDefault(); !busy() && confirmation.set(null)">
+    <h2 id="decision-title">{{ c.decision === 'accept' ? 'Accepter cette proposition ?' : 'Refuser cette proposition ?' }}</h2><p>{{ c.proposal.firstName }} {{ c.proposal.lastName }} · {{ money(c.proposal.amount) }}</p>
+    <p>{{ c.decision === 'accept' ? 'Le besoin passera en cours. Les autres propositions en attente seront refusées.' : 'Cette décision sera enregistrée et ne pourra pas être annulée depuis cet écran.' }}</p>
+    <div class="modal-actions"><button autofocus class="secondary" [disabled]="busy()" (click)="confirmation.set(null)">Annuler</button><button class="primary" [disabled]="busy()" (click)="confirm()">{{ busy() ? 'Enregistrement…' : 'Confirmer' }}</button></div>
+  </dialog>
+}
+@if (profileOpen()) {
+  <dialog #profileDialog class="modal" aria-labelledby="profile-title" (cancel)="$event.preventDefault(); profileOpen.set(false)"><h2 id="profile-title">Profil public du prestataire</h2>
+    @if (profileLoading()) { <p role="status">Chargement du profil…</p> }
+    @if (profileError()) { <p role="alert">{{ profileError() }}</p> }
+    @if (profile(); as p) { <div class="person"><span class="avatar">{{ initials(p.firstName, p.lastName) }}</span><h3>{{ p.firstName }} {{ p.lastName }}</h3></div><p>{{ p.acceptedCount }} proposition{{ p.acceptedCount > 1 ? 's' : '' }} acceptée{{ p.acceptedCount > 1 ? 's' : '' }} sur Micro-Besoins</p> }
+    <div class="modal-actions"><button autofocus class="primary" (click)="profileOpen.set(false)">Fermer</button></div>
+  </dialog>
+}

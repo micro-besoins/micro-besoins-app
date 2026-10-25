@@ -49,6 +49,34 @@ Après avoir créé la base et les tables initiales, exécutez les scripts dans 
 1. `backend/src/db/mise-a-jour-schema.sql` — obligatoire pour une base existante : met à jour le schéma et initialise les catégories.
 2. `backend/src/db/ajout-architecture-paiement.sql` — crée le stockage des intentions de paiement ; aucun prestataire de paiement réel n'est activé.
 3. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
+4. `backend/src/db/ajout-gestion-propositions.sql` — ajoute `reponse.disponibilite` et un index sur `reponse.idgig`, sans supprimer les données existantes. À appliquer pour gérer les propositions reçues.
+
+### Gestion des propositions reçues
+
+#### Modifications de la base de données — 25 octobre 2026
+
+La migration `backend/src/db/ajout-gestion-propositions.sql` a été **appliquée à la base locale** pendant le développement de cette fonctionnalité. Elle apporte uniquement les changements de schéma suivants :
+
+| Élément | Modification | Utilité |
+|---|---|---|
+| Table `reponse` | Ajout de la colonne `disponibilite` de type `TEXT`, facultative | Enregistrer et afficher la disponibilité indiquée par le prestataire. |
+| Table `reponse` | Ajout de l'index `idx_reponse_gig` sur `idgig` | Accélérer la récupération des propositions d'un besoin. |
+
+Aucune table ni donnée existante n'a été supprimée par cette migration. Les anciennes propositions conservent leurs données ; leur disponibilité reste `NULL` si elle n'était pas renseignée. Le script peut être réexécuté sans recréer la colonne ou l'index grâce à `IF NOT EXISTS`. Pour une autre installation, il faut appliquer ce même script à sa base.
+
+Les décisions utilisent les colonnes de statut déjà existantes : `reponse.statusreponse` reçoit `ACCEPTEE` ou `REFUSEE`. En cas d'acceptation, `gig.statusgig` passe à `EN_COURS`, `gig.datemodification` est actualisée et les autres propositions en attente sont refusées. Aucune colonne de statut supplémentaire n'a été ajoutée.
+
+Les comptes, besoins et propositions créés temporairement pour les tests ont été supprimés après vérification.
+
+#### Interface et API
+
+Dans Explorer, le bouton **Voir les propositions** d'un besoin vous appartenant ouvre `/besoins/:id#propositions`. Le détail utilise la même largeur et le même en-tête qu'Explorer. Le propriétaire peut comparer les propositions, consulter le profil public des prestataires et accepter ou refuser une proposition.
+
+L'acceptation enregistre `ACCEPTEE`, passe le besoin à `EN_COURS` et refuse les autres propositions encore `EN_ATTENTE` dans une transaction avec verrouillage. Le besoin en cours reste accessible à son propriétaire depuis Explorer. Un refus seul enregistre `REFUSEE` et laisse le besoin publié. Les disponibilités anciennes non renseignées sont affichées comme telles.
+
+Les endpoints authentifiés sont `GET/POST /api/gigs/:id/proposals`, `PATCH /api/gigs/:id/proposals/:proposalId` (corps : `{ "decision": "accept" }` ou `"refuse"`) et `GET /api/gigs/profiles/:providerId`. La consultation de la liste et les décisions sont réservées au propriétaire côté serveur. Le profil public expose uniquement le nom, le prénom et le nombre de propositions acceptées.
+
+Test d'intégration (base configurée dans `backend/.env`, migration appliquée) : depuis `backend`, `node --import tsx --test tests/proposals.integration.test.ts`. Les comptes et besoins temporaires du test sont supprimés à la fin.
 
 Le script `backend/src/db/ajout-mot-de-passe.sql` est conservé pour les anciennes installations, mais son traitement est déjà inclus dans `mise-a-jour-schema.sql`.
 

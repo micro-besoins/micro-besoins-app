@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
-import { isAdminUser } from '../auth/admin-role';
+import { lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
+import { SiteHeader } from '../../shared/site-header/site-header';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
 
 interface Gig {
@@ -21,6 +21,7 @@ interface Gig {
   ownerFirstName: string | null;
   ownerLastName: string | null;
   proposalCount: number;
+  hasProposed: boolean;
 }
 
 interface FilterOptions { categories: string[]; locations: string[]; budgets: string[]; }
@@ -28,8 +29,8 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, NgIcon],
-  providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
+  imports: [FormsModule, RouterLink, NgIcon, SiteHeader],
+  providers: [provideIcons({ lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
   styleUrl: './home.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,8 +40,6 @@ export class HomePage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly user = signal<RegisteredUser | null>(this.auth.currentUser());
-  protected readonly isAdmin = isAdminUser(this.auth);
-  protected readonly profileOpen = signal(false);
   protected readonly gigs = signal<Gig[]>([]);
   protected readonly filters = signal<FilterOptions>({ categories: [], locations: [], budgets: [] });
   protected readonly budgetRanges = [
@@ -90,18 +89,6 @@ export class HomePage {
     this.sort.set(value);
     this.gigs.update((gigs) => this.sortGigs(gigs));
   }
-
-  protected logout(): void {
-    this.auth.logout();
-    void this.router.navigateByUrl('/auth/login');
-  }
-
-  protected goToAdmin(): void {
-    this.profileOpen.set(false);
-    void this.router.navigateByUrl('/admin');
-  }
-
-  protected toggleProfile(): void { this.profileOpen.update((open) => !open); }
 
   protected initials(firstName: string | null, lastName: string | null): string {
     return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase() || '?';
