@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions, reportGig } from '../services/gig.service';
+import { categoryExists, createGig, createProposal, findGigs, findGigById, getGigFilterOptions, reportGig } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -64,6 +64,43 @@ export async function createGigReport(req: Request, res: Response, next: NextFun
       return;
     }
     res.status(201).json({ report });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function submitProposal(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+    const availability = typeof req.body?.availability === 'string' ? req.body.availability.trim() : '';
+    const price = Number(req.body?.price);
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ code: 'INVALID_PARAMETER', message: 'Identifiant de besoin invalide.' });
+      return;
+    }
+    if (content.length < 10 || content.length > 2000 || availability.length < 3 || availability.length > 200) {
+      res.status(400).json({ code: 'INVALID_PROPOSAL', message: 'Complétez un message, un tarif et vos disponibilités.' });
+      return;
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      res.status(400).json({ code: 'INVALID_PROPOSAL', message: 'Le tarif proposé doit être supérieur à zéro.' });
+      return;
+    }
+    const proposal = await createProposal({ gigId: id, providerId: req.user!.id, content, availability, price });
+    if (proposal === 'NOT_FOUND') {
+      res.status(404).json({ code: 'NOT_FOUND', message: 'Ce besoin n’est pas disponible.' });
+      return;
+    }
+    if (proposal === 'OWN_GIG') {
+      res.status(403).json({ code: 'FORBIDDEN', message: 'Vous ne pouvez pas proposer vos services sur votre propre besoin.' });
+      return;
+    }
+    if (proposal === 'ALREADY_EXISTS') {
+      res.status(409).json({ code: 'ALREADY_EXISTS', message: 'Vous avez déjà une proposition en attente pour ce besoin.' });
+      return;
+    }
+    res.status(201).json({ proposal });
   } catch (error) {
     next(error);
   }

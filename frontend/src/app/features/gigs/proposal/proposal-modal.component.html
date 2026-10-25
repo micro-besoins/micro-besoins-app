@@ -1,0 +1,18 @@
+<div class="backdrop" (click)="cancel()">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="proposal-title" (click)="$event.stopPropagation()">
+    <header>
+      <h2 id="proposal-title">Proposer mes services</h2>
+      <button type="button" (click)="cancel()" aria-label="Fermer"><ng-icon name="lucideX"/></button>
+    </header>
+
+    <div class="gig-summary"><p>{{ gig().category || 'Besoin' }}</p><strong>{{ gig().title }}</strong><span>Budget indicatif : Rs {{ formatBudget(gig().budget) }}</span></div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label><span class="field-label">Votre message <b>*</b></span><textarea formControlName="content" placeholder="Présentez votre expérience et votre approche…" [class.invalid]="invalid('content')"></textarea>@if (invalid('content')) { <small>Le message doit contenir au moins 10 caractères.</small> }</label>
+      <label><span class="field-label">Tarif proposé (Rs) <b>*</b></span><input formControlName="price" type="number" min="1" inputmode="decimal" [class.invalid]="invalid('price')">@if (invalid('price')) { <small>Indiquez un tarif supérieur à zéro.</small> }</label>
+      <label><span class="field-label">Disponibilités <b>*</b></span><input formControlName="availability" placeholder="Ex. Samedi matin entre 8 h et 12 h" [class.invalid]="invalid('availability')">@if (invalid('availability')) { <small>Indiquez vos disponibilités.</small> }</label>
+      @if (error()) { <p class="error">{{ error() }}</p> }
+      <footer><button type="button" class="cancel" (click)="cancel()">Annuler</button><button type="submit" class="send" [disabled]="sending()">{{ sending() ? 'Envoi…' : 'Envoyer ma proposition' }}</button></footer>
+    </form>
+  </section>
+</div>

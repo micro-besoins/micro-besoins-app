@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
 import { isAdminUser } from '../auth/admin-role';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
+import { ProposalGig, ProposalModalComponent } from '../gigs/proposal/proposal-modal.component';
 
 interface Gig {
   id: number;
@@ -28,7 +29,7 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, NgIcon],
+  imports: [FormsModule, RouterLink, NgIcon, ProposalModalComponent],
   providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
   styleUrl: './home.page.css',
@@ -55,6 +56,7 @@ export class HomePage {
   protected readonly location = signal('');
   protected readonly budget = signal('');
   protected readonly sort = signal<'recent' | 'budget-asc' | 'budget-desc'>('recent');
+  protected readonly proposalGig = signal<ProposalGig | null>(null);
   protected readonly countLabel = computed(() => `${this.gigs().length} annonce${this.gigs().length > 1 ? 's' : ''}`);
 
   constructor() {
@@ -70,6 +72,20 @@ export class HomePage {
   }
 
   protected openDetail(id: number): void { void this.router.navigate(['/besoins', id]); }
+
+  protected openProposal(gig: Gig, event: Event): void {
+    event.stopPropagation();
+    this.proposalGig.set({ id: gig.id, title: gig.title, category: gig.category, budget: gig.budget });
+  }
+
+  protected closeProposal(): void { this.proposalGig.set(null); }
+
+  protected proposalSubmitted(gigId: number): void {
+    this.gigs.update((gigs) => gigs.map((gig) =>
+      gig.id === gigId ? { ...gig, proposalCount: gig.proposalCount + 1 } : gig,
+    ));
+    this.closeProposal();
+  }
 
   protected search(): void {
     this.loading.set(true);

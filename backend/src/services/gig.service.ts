@@ -24,6 +24,48 @@ export interface GigFilterOptions {
   budgets: string[];
 }
 
+export interface CreateProposalInput {
+  gigId: number;
+  providerId: number;
+  content: string;
+  price: number;
+  availability: string;
+}
+
+export interface ProposalDetail {
+  id: number;
+  content: string;
+  price: string;
+  availability: string | null;
+  sentAt: Date | null;
+  status: string | null;
+  providerId: number | null;
+  providerFirstName: string | null;
+  providerLastName: string | null;
+}
+
+interface ProposalRow {
+  id: number;
+  storedContent: string;
+  price: string;
+  sentAt: Date | null;
+  status: string | null;
+  providerId: number | null;
+  providerFirstName: string | null;
+  providerLastName: string | null;
+}
+
+const AVAILABILITY_SEPARATOR = '\n\nDisponibilités : ';
+
+function readProposalContent(storedContent: string): Pick<ProposalDetail, 'content' | 'availability'> {
+  const separatorIndex = storedContent.lastIndexOf(AVAILABILITY_SEPARATOR);
+  if (separatorIndex < 0) return { content: storedContent, availability: null };
+  return {
+    content: storedContent.slice(0, separatorIndex),
+    availability: storedContent.slice(separatorIndex + AVAILABILITY_SEPARATOR.length).trim() || null,
+  };
+}
+
 interface GigCapabilities {
   hasCategory: boolean;
   hasLocation: boolean;
@@ -144,7 +186,68 @@ export async function findGigById(id: number, viewerId: number | null) {
     )).rows
     : [];
 
-  return { ...gig, isOwner, payments };
+  const proposalRows = isOwner
+    ? (await pool.query<ProposalRow>(
+      `SELECT r.idreponse AS id, r.contenu AS "storedContent", r.prixpropose::text AS price,
+              r.datereponse AS "sentAt", r.statusreponse AS status,
+              u.idutilisateur AS "providerId", u.prenom AS "providerFirstName", u.nom AS "providerLastName"
+         FROM reponse r
+         LEFT JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
+        WHERE r.idgig = $1
+        ORDER BY r.datereponse DESC NULLS LAST, r.idreponse DESC`,
+      [id],
+    )).rows
+    : [];
+
+  const proposals: ProposalDetail[] = proposalRows.map(({ storedContent, ...proposal }) => ({
+    ...proposal,
+    ...readProposalContent(storedContent),
+  }));
+
+  return { ...gig, isOwner, payments, proposals };
+}
+
+export async function createProposal(input: CreateProposalInput): Promise<'NOT_FOUND' | 'OWN_GIG' | 'ALREADY_EXISTS' | ProposalDetail> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: gigs } = await client.query<{ ownerId: number | null; status: string | null }>(
+      `SELECT idutilisateur AS "ownerId", statusgig AS status FROM gig WHERE idgig = $1 FOR UPDATE`,
+      [input.gigId],
+    );
+    const gig = gigs[0];
+    if (!gig || gig.status !== GIG_STATUS.VALIDATED) { await client.query('ROLLBACK'); return 'NOT_FOUND'; }
+    if (gig.ownerId === input.providerId) { await client.query('ROLLBACK'); return 'OWN_GIG'; }
+
+    const existing = await client.query(
+      `SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 AND statusreponse = 'EN_ATTENTE'`,
+      [input.gigId, input.providerId],
+    );
+    if ((existing.rowCount ?? 0) > 0) { await client.query('ROLLBACK'); return 'ALREADY_EXISTS'; }
+
+    const storedContent = `${input.content}${AVAILABILITY_SEPARATOR}${input.availability}`;
+    const { rows } = await client.query<{ id: number; price: string; sentAt: Date | null; status: string | null }>(
+      `INSERT INTO reponse (contenu, prixpropose, datereponse, statusreponse, idutilisateur, idgig)
+       VALUES ($1, $2, NOW(), 'EN_ATTENTE', $3, $4)
+       RETURNING idreponse AS id, contenu AS content, prixpropose::text AS price,
+                 datereponse AS "sentAt", statusreponse AS status`,
+      [storedContent, input.price, input.providerId, input.gigId],
+    );
+    await client.query('COMMIT');
+    return {
+      ...rows[0],
+      content: input.content,
+      availability: input.availability,
+      providerId: null,
+      providerFirstName: null,
+      providerLastName: null,
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function reportGig(id: number, reporterId: number, reason: string) {
