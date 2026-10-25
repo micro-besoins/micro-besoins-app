@@ -356,9 +356,7 @@ curl -X PATCH -H "Authorization: Bearer <token>" http://localhost:3000/api/admin
 - **Table `signalement` :** ajoutée à `database/schema.sql` pour ce ticket (elle n'existait pas).
 - **Requêtes SQL :** toujours paramétrées (`$1`, `$2`…), jamais de concaténation de texte, pour éviter les injections SQL.
 
-## Modification du schéma de la table paiement :
-Afin de gérer les paiements à la publication, la table paiement a été modifiée :
-- Ajout de la colonne idgig (clé étrangère vers gig).
-- La colonne idreponse devient optionnelle (NULL).
-Executer la dernière partie du code dans mise-a-jour-schema.sql, ligne 54 à 58
+## Paiements liés à une publication
+
+La migration `src/db/mise-a-jour-schema.sql` ajoute `idGig` à la table `paiement` et rend `idReponse` facultatif. Un paiement peut ainsi être lié à la publication d'un besoin ou à une réponse acceptée. Exécutez la migration avant de publier un besoin.
 

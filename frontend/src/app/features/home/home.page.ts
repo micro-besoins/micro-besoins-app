@@ -69,6 +69,8 @@ export class HomePage {
     this.search();
   }
 
+  protected openDetail(id: number): void { void this.router.navigate(['/besoins', id]); }
+
   protected search(): void {
     this.loading.set(true);
     this.error.set('');

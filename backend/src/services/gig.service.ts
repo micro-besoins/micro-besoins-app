@@ -1,5 +1,5 @@
 import { pool } from '../config/db';
-import { GIG_STATUS, PAYMENT_STATUS } from '../utils/constants';
+import { GIG_STATUS, PAYMENT_STATUS, REPORT_STATUS } from '../utils/constants';
 
 export interface GigFilters {
   keyword?: string;
@@ -90,7 +90,7 @@ function gigSelect(capabilities: GigCapabilities): string {
 export async function findGigs(filters: GigFilters) {
   const capabilities = await getCapabilities();
   const values: string[] = [];
-  const conditions: string[] = [`g.statusgig = 'VALIDE'`];
+  const conditions: string[] = [`g.statusgig = '${GIG_STATUS.VALIDATED}'`];
   const add = (condition: string, value: string) => {
     values.push(value);
     conditions.push(condition.replace('?', `$${values.length}`));
@@ -131,10 +131,56 @@ export async function findGigById(id: number, viewerId: number | null) {
   const gig = rows[0];
   if (!gig) return null;
  
-  const isOwner = viewerId !== null && gig.ownerId === viewerId;
+  const isOwner = viewerId !== null && Number(gig.ownerId) === Number(viewerId);
   if (gig.status !== GIG_STATUS.VALIDATED && !isOwner) return null;
  
-  return { ...gig, isOwner };
+  const payments = isOwner
+    ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null }>(
+      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt"
+         FROM paiement
+        WHERE idgig = $1
+        ORDER BY idpaiement DESC`,
+      [id],
+    )).rows
+    : [];
+
+  let proposals: any[] = [];
+  if (isOwner) {
+    const { rows: props } = await pool.query(
+      `SELECT r.idreponse AS id,
+              r.contenu AS message,
+              r.prixpropose AS montant,
+              r.statusreponse AS status,
+              r.date_rendez_vous AS "dateRdv",
+              u.idutilisateur AS "auteurId",
+              u.prenom AS "auteurPrenom",
+              u.nom AS "auteurNom"
+        FROM reponse r
+        JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
+        WHERE r.idgig = $1
+        ORDER BY r.datereponse DESC`,
+      [id]
+    );
+    proposals = props;
+  }
+
+  return { ...gig, isOwner, payments, proposals };
+}
+
+export async function reportGig(id: number, reporterId: number, reason: string) {
+  const { rows: gigs } = await pool.query<{ status: string }>(
+    `SELECT statusgig AS status FROM gig WHERE idgig = $1`,
+    [id],
+  );
+  if (!gigs[0] || gigs[0].status !== GIG_STATUS.VALIDATED) return null;
+
+  const { rows } = await pool.query<{ id: number }>(
+    `INSERT INTO signalement (idgig, idutilisateur, motif, statussignalement, datesignalement)
+     VALUES ($1, $2, $3, $4, NOW())
+     RETURNING idsignalement AS id`,
+    [id, reporterId, reason, REPORT_STATUS.OPEN],
+  );
+  return rows[0];
 }
 
 export async function createGig(input: CreateGigInput) {
@@ -160,4 +206,53 @@ export async function createGig(input: CreateGigInput) {
   } finally {
     client.release();
   }
+}
+
+export async function accepterProposition(idReponse: number, ownerId: number, dateRdv: string | null) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `SELECT r.idgig, g.idutilisateur AS "ownerId"
+        FROM reponse r JOIN gig g ON g.idgig = r.idgig
+        WHERE r.idreponse = $1`,
+      [idReponse]
+    );
+
+    const reponse = rows[0];
+    if (!reponse) throw new Error("Proposition introuvable.");
+    if (Number(reponse.ownerId) !== Number(ownerId)) throw new Error("Vous n'êtes pas le propriétaire de cette annonce.");
+    
+    const accepted = await client.query(
+      `UPDATE reponse SET statusreponse = 'ACCEPTE', date_rendez_vous = $1
+        WHERE idreponse = $2 AND statusreponse = 'EN_ATTENTE'`,
+      [dateRdv, idReponse]
+    );
+    if (accepted.rowCount === 0) throw new Error('Cette proposition a déjà été traitée.');
+    
+    await client.query(
+      `UPDATE reponse SET statusreponse = 'REFUSE'
+        WHERE idgig = $1 AND idreponse != $2 AND statusreponse = 'EN_ATTENTE'`,
+      [reponse.idgig, idReponse]
+    );
+
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createProposition(gigId: number, userId: number, message: string, montant: number) {
+  const { rows } = await pool.query(
+    `INSERT INTO reponse (idgig, idutilisateur, contenu, prixpropose, statusreponse, datereponse)
+     VALUES ($1, $2, $3, $4, 'EN_ATTENTE', NOW())
+     RETURNING idreponse AS id`,
+    [gigId, userId, message, montant]
+  );
+  return rows[0];
 }
