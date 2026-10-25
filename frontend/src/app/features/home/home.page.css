@@ -71,6 +71,16 @@ main { max-width:1660px; margin:0 auto; padding:45px 58px 80px; }.hero { margin-
   .hero h1 { font-size:29px; }
 }
 
+.primary, 
+button.primary, 
+a.primary {
+  background-color: #1767df; /* ou la couleur de ton bleu */
+  color: white;              /* Force le texte en blanc */
+  text-decoration: none;     /* Enlève le soulignement du lien */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .detail-link { display:flex; align-items:center; justify-content:center; height:56px; border-radius:10px; font-size:18px; font-weight:800; text-decoration:none; }
 
 /* Le détail est l'action secondaire des cartes : elle doit rester visible sans
