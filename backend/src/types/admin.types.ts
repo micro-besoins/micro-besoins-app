@@ -21,6 +21,9 @@ export interface PublicationItem {
   titre: string;
   description: string;
   budget: number;
+  categorie: string | null;
+  localite: string | null;
+  dateSouhaitee: Date | null;
   datePublication: Date | null;
   status: string;
   motif: string | null;

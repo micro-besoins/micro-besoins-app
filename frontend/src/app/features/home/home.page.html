@@ -166,6 +166,10 @@
   </section>
 </main>
 
+@if (proposalSuccess()) {
+  <p class="proposal-success" role="status">{{ proposalSuccess() }}</p>
+}
+
 <!-- MODALE DE PROPOSITION -->
 @if (proposalGig(); as gig) {
   <div class="proposal-backdrop" (click)="closeProposal()">

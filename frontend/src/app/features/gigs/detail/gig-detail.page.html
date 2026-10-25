@@ -147,7 +147,7 @@
           <button class="primary-action" (click)="openProposal()">
             <ng-icon name="lucidePlus"/>Proposer mes services
           </button>
-          <button class="secondary-action" (click)="notify('La messagerie sera disponible prochainement.')">
+          <button class="secondary-action" (click)="contacterAuteur(item.ownerId)">
             <ng-icon name="lucideMessageCircle"/>Contacter l’auteur
           </button>
           <button class="report-action" (click)="openReport()">

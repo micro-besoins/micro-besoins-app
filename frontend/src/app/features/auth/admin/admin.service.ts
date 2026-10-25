@@ -28,13 +28,17 @@ export class AdminService {
     return this.http.get<DashboardStats>(`${this.apiUrl}/stats`);
   }
 
-  getPublications(status = 'EN_ATTENTE', page = 1): Observable<AdminResponse<any>> {
-    const params = new HttpParams().set('status', status).set('page', page.toString());
+  getPublications(page = 1): Observable<AdminResponse<any>> {
+    const params = new HttpParams().set('page', page.toString());
     return this.http.get<AdminResponse<any>>(`${this.apiUrl}/publications`, { params });
   }
 
-  getPaiements(status = 'ECHOUE', page = 1): Observable<AdminResponse<any>> {
-    const params = new HttpParams().set('status', status).set('page', page.toString());
+  getPublication(id: number): Observable<{ publication: any }> {
+    return this.http.get<{ publication: any }>(`${this.apiUrl}/publications/${id}`);
+  }
+
+  getPaiements(page = 1): Observable<AdminResponse<any>> {
+    const params = new HttpParams().set('page', page.toString());
     return this.http.get<AdminResponse<any>>(`${this.apiUrl}/paiements`, { params });
   }
 

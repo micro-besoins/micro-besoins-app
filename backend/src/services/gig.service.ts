@@ -290,11 +290,36 @@ export async function terminerProposition(idReponse: number, ownerId: number) {
 }
 
 export async function createProposition(gigId: number, userId: number, message: string, montant: number) {
-  const { rows } = await pool.query(
-    `INSERT INTO reponse (idgig, idutilisateur, contenu, prixpropose, statusreponse, datereponse)
-     VALUES ($1, $2, $3, $4, 'EN_ATTENTE', NOW())
-     RETURNING idreponse AS id`,
-    [gigId, userId, message, montant]
-  );
-  return rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: gigs } = await client.query<{ ownerId: number; status: string | null }>(
+      'SELECT idutilisateur AS "ownerId", statusgig AS status FROM gig WHERE idgig = $1 FOR KEY SHARE',
+      [gigId],
+    );
+    const gig = gigs[0];
+    if (!gig) throw new Error('Besoin introuvable.');
+    if (Number(gig.ownerId) === Number(userId)) throw new Error('Vous ne pouvez pas proposer vos services sur votre propre besoin.');
+    if (gig.status !== GIG_STATUS.VALIDATED) throw new Error('Ce besoin n’est pas disponible pour les propositions.');
+
+    const existing = await client.query(
+      'SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 LIMIT 1',
+      [gigId, userId],
+    );
+    if ((existing.rowCount ?? 0) > 0) throw new Error('Vous avez déjà envoyé une proposition pour ce besoin.');
+
+    const { rows } = await client.query(
+      `INSERT INTO reponse (idgig, idutilisateur, contenu, prixpropose, statusreponse, datereponse)
+       VALUES ($1, $2, $3, $4, 'EN_ATTENTE', NOW())
+       RETURNING idreponse AS id`,
+      [gigId, userId, message, montant],
+    );
+    await client.query('COMMIT');
+    return rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
