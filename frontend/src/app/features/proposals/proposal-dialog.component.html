@@ -1,0 +1,19 @@
+<dialog #dialog aria-labelledby="proposal-title" (cancel)="$event.preventDefault(); close()">
+  <header><h2 id="proposal-title">Proposer mes services</h2><button type="button" aria-label="Fermer" (click)="close()" [disabled]="sending()">×</button></header>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="sending()">
+    <div class="body">
+      <section class="summary" aria-label="Besoin concerné"><small>{{ gig().category || 'Besoin' }}</small><h3>{{ gig().title }}</h3><p>Budget indicatif : Rs {{ gig().budget }}</p></section>
+      <label for="proposal-message">Votre message <span>*</span></label>
+      <textarea id="proposal-message" formControlName="message" autofocus rows="4" maxlength="5000" placeholder="Présentez votre expérience et votre approche…" required [readOnly]="sending()" [attr.aria-invalid]="submitted() && form.controls.message.invalid" aria-describedby="message-error"></textarea>
+      <p id="message-error" class="field-error">@if (submitted() && form.controls.message.invalid) { Saisissez un message (5 000 caractères maximum). }</p>
+      <label for="proposal-price">Tarif proposé (Rs) <span>*</span></label>
+      <input id="proposal-price" type="number" formControlName="price" min="0.01" max="99999.99" step="0.01" required [readOnly]="sending()" [attr.aria-invalid]="submitted() && form.controls.price.invalid" aria-describedby="price-error">
+      <p id="price-error" class="field-error">@if (submitted() && form.controls.price.invalid) { Saisissez un tarif entre Rs 0,01 et Rs 99 999,99 (deux décimales maximum). }</p>
+      <label for="proposal-availability">Disponibilités <span>*</span></label>
+      <input id="proposal-availability" formControlName="availability" maxlength="500" placeholder="Ex. Samedi matin entre 8 h et 12 h" required [readOnly]="sending()" [attr.aria-invalid]="submitted() && form.controls.availability.invalid" aria-describedby="availability-error">
+      <p id="availability-error" class="field-error">@if (submitted() && form.controls.availability.invalid) { Précisez vos disponibilités (500 caractères maximum). }</p>
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    </div>
+    <footer><button type="button" class="cancel" (click)="close()" [disabled]="sending()">Annuler</button><button type="submit" class="primary" [disabled]="sending()">{{ sending() ? 'Envoi en cours…' : 'Envoyer ma proposition' }}</button></footer>
+  </form>
+</dialog>

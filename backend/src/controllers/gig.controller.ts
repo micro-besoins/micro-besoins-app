@@ -11,7 +11,7 @@ export async function listGigs(req: Request, res: Response, next: NextFunction) 
       category: queryValue(req.query['category']) || undefined,
       location: queryValue(req.query['location']) || undefined,
       budget: queryValue(req.query['budget']) || undefined,
-    });
+    }, req.user!.id);
     res.json({ gigs });
   } catch (error) {
     next(error);

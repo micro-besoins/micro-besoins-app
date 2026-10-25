@@ -49,6 +49,24 @@ Après avoir créé la base et les tables initiales, exécutez les scripts dans 
 1. `backend/src/db/mise-a-jour-schema.sql` — obligatoire pour une base existante : met à jour le schéma et initialise les catégories.
 2. `backend/src/db/ajout-architecture-paiement.sql` — crée le stockage des intentions de paiement ; aucun prestataire de paiement réel n'est activé.
 3. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
+4. `backend/src/db/ajout-propositions.sql` — obligatoire pour « Proposer mes services » : ajoute `reponse.disponibilites` (VARCHAR(500), nullable pour préserver les anciennes réponses) et un index sur `(idutilisateur, idgig)`. Ce script peut être rejoué sans supprimer de données.
+
+### Proposer mes services — informations à transmettre à l'équipe
+
+Après récupération du code, exécuter `backend/src/db/ajout-propositions.sql` dans pgAdmin sur chaque base existante, puis redémarrer le backend et le frontend. Aucune nouvelle variable d'environnement ni dépendance n'est nécessaire. La migration a été appliquée à la base locale pendant la validation de cette fonctionnalité ; les autres bases doivent être mises à jour séparément.
+
+Le bouton « Proposer mes services » ouvre un formulaire avec le résumé du besoin, un message, un tarif en roupies et les disponibilités. Tous les champs sont obligatoires. Après envoi, une confirmation apparaît, le bouton indique « Proposition envoyée » et la proposition est disponible dans « Mes propositions », y compris après rechargement.
+
+- `POST /api/gigs/:id/proposals` (JWT requis), corps JSON : `{ "message": "Mon expérience…", "price": 1200.50, "availability": "Samedi matin" }`. Retourne `201` avec la proposition enregistrée, au statut `EN_ATTENTE`.
+- `GET /api/proposals` (JWT requis) : liste uniquement les propositions de l'utilisateur connecté.
+- `GET /api/gigs` inclut désormais `hasProposed` pour chaque besoin.
+- L'API refuse un besoin appartenant à l'utilisateur (`403`), un besoin non validé (`409`), un doublon (`409`) et les champs invalides (`400`). Le tarif doit être compris entre Rs 0,01 et Rs 99 999,99, avec deux décimales maximum. Message : 5 000 caractères maximum ; disponibilités : 500.
+- L'enregistrement utilise la table `reponse` existante : `contenu`, `prixpropose`, `disponibilites`, `datereponse`, `statusreponse`, `idutilisateur` et `idgig`. Les anciens enregistrements restent inchangés.
+- Une transaction et un verrou du besoin empêchent deux propositions simultanées du même utilisateur via cette API.
+
+Validation : `npm.cmd run typecheck` dans `backend`, `npm.cmd run build` dans `frontend`, puis `node --import tsx --test tests/proposals.integration.test.ts` dans `backend`. Les tests utilisent uniquement une base PostgreSQL locale configurée dans `.env`, appliquent la migration et suppriment leurs utilisateurs/annonces/propositions de test en fin d'exécution.
+
+Un conflit Git préexistant a également été résolu dans `backend/src/types/express.d.ts`, avec un ajustement de typage dans `auth.middleware.ts` pour compiler les rôles existants. Les règles d'attribution des rôles et d'accès restent identiques.
 
 Le script `backend/src/db/ajout-mot-de-passe.sql` est conservé pour les anciennes installations, mais son traitement est déjà inclus dans `mise-a-jour-schema.sql`.
 

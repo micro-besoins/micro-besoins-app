@@ -23,7 +23,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
 // Restreint une route à certains rôles, à placer après authenticate
 export function requireRole(...roles: Role[]) {
   return (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user || !roles.some((role) => role === req.user!.role)) {
       return next(new AppError(403, 'Accès refusé.'));
     }
     next();

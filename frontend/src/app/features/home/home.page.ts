@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
 import { isAdminUser } from '../auth/admin-role';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
+import { ProposalDialogComponent } from '../proposals/proposal-dialog.component';
 
 interface Gig {
   id: number;
@@ -21,6 +22,7 @@ interface Gig {
   ownerFirstName: string | null;
   ownerLastName: string | null;
   proposalCount: number;
+  hasProposed: boolean;
 }
 
 interface FilterOptions { categories: string[]; locations: string[]; budgets: string[]; }
@@ -28,7 +30,7 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, NgIcon],
+  imports: [FormsModule, RouterLink, NgIcon, ProposalDialogComponent],
   providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
   styleUrl: './home.page.css',
@@ -42,6 +44,22 @@ export class HomePage {
   protected readonly isAdmin = isAdminUser(this.auth);
   protected readonly profileOpen = signal(false);
   protected readonly gigs = signal<Gig[]>([]);
+  protected readonly selectedGig = signal<Gig | null>(null);
+  protected readonly confirmation = signal('');
+
+  protected propose(gig: Gig): void {
+    if (gig.ownerId === this.user()?.id) { void this.router.navigateByUrl('/mes-besoins'); return; }
+    if (gig.hasProposed) return;
+    this.confirmation.set('');
+    this.selectedGig.set(gig);
+  }
+
+  protected proposalSent(): void {
+    const selected = this.selectedGig();
+    this.gigs.update((gigs) => gigs.map((gig) => gig.id === selected?.id ? { ...gig, hasProposed: true, proposalCount: gig.proposalCount + 1 } : gig));
+    this.selectedGig.set(null);
+    this.confirmation.set('Votre proposition a bien été envoyée.');
+  }
   protected readonly filters = signal<FilterOptions>({ categories: [], locations: [], budgets: [] });
   protected readonly budgetRanges = [
     { value: 'under-1000', label: 'Moins de Rs 1 000' },

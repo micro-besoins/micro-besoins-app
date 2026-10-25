@@ -1,0 +1,25 @@
+<header class="topbar">
+  <a routerLink="/" class="brand"><span class="logo">m</span><span>Micro-Besoins</span></a>
+  <nav aria-label="Navigation principale"><a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions" class="active" aria-current="page">Mes propositions</a><a routerLink="/messages">Messages</a></nav>
+  <a routerLink="/publier-un-besoin" class="publish">＋ Publier un besoin</a>
+</header>
+<main>
+  <section class="hero"><p class="eyebrow">Mes services</p><h1>Mes propositions</h1><p>Retrouvez les propositions envoyées aux demandeurs.</p></section>
+  @if (loading()) { <p class="state" role="status">Chargement de vos propositions…</p> }
+  @else if (error()) { <div class="state error" role="alert">{{ error() }} <button type="button" (click)="load()">Réessayer</button></div> }
+  @else if (!proposals().length) { <div class="state">Vous n’avez pas encore envoyé de proposition. <a routerLink="/">Explorer les besoins</a></div> }
+  @else {
+    <p>{{ proposals().length }} proposition(s) envoyée(s)</p>
+    <div class="cards">@for (proposal of proposals(); track proposal.id) {
+      <article class="card proposal">
+        <div class="card-top"><span class="category">{{ proposal.category || 'Besoin' }}</span><span class="badge">{{ status(proposal.status) }}</span></div>
+        <h2>{{ proposal.gigTitle }}</h2>
+        <p class="recipient">Demandeur : {{ proposal.ownerFirstName }} {{ proposal.ownerLastName }}@if (proposal.location) { · {{ proposal.location }} }</p>
+        <div class="budget"><small>Votre tarif proposé</small><strong>{{ formatPrice(proposal.price) }}</strong></div>
+        <h3>Votre message</h3><p class="text">{{ proposal.message }}</p>
+        <h3>Disponibilités</h3><p class="text">{{ proposal.availability || 'Non renseignées (ancienne proposition)' }}</p>
+        <p class="sent-date">Envoyée le {{ formatDate(proposal.createdAt) }}</p>
+      </article>
+    }</div>
+  }
+</main>
