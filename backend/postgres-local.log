@@ -1,0 +1,80 @@
+2026-10-19 14:15:26.286 +04 [8888] LOG:  starting PostgreSQL 18.2 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+2026-10-19 14:15:26.299 +04 [8888] LOG:  could not bind IPv6 address "::1": Only one usage of each socket address (protocol/network address/port) is normally permitted.
+	
+2026-10-19 14:15:26.299 +04 [8888] HINT:  Is another postmaster already running on port 55432? If not, wait a few seconds and retry.
+2026-10-19 14:15:26.299 +04 [8888] LOG:  could not bind IPv4 address "127.0.0.1": Only one usage of each socket address (protocol/network address/port) is normally permitted.
+	
+2026-10-19 14:15:26.299 +04 [8888] HINT:  Is another postmaster already running on port 55432? If not, wait a few seconds and retry.
+2026-10-19 14:15:26.299 +04 [8888] WARNING:  could not create listen socket for "localhost"
+2026-10-19 14:15:26.299 +04 [8888] FATAL:  could not create any TCP/IP sockets
+2026-10-19 14:15:26.301 +04 [8888] LOG:  database system is shut down
+2026-10-19 14:16:23.053 +04 [29072] LOG:  starting PostgreSQL 18.2 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+2026-10-19 14:16:23.063 +04 [29072] LOG:  listening on IPv6 address "::1", port 55432
+2026-10-19 14:16:23.063 +04 [29072] LOG:  listening on IPv4 address "127.0.0.1", port 55432
+2026-10-19 14:16:23.191 +04 [16764] LOG:  database system was interrupted; last known up at 2026-10-19 14:14:44 +04
+2026-10-19 14:16:25.837 +04 [16764] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-10-19 14:16:25.844 +04 [16764] LOG:  redo starts at 0/2284770
+2026-10-19 14:16:25.844 +04 [16764] LOG:  invalid record length at 0/22847A8: expected at least 24, got 0
+2026-10-19 14:16:25.844 +04 [16764] LOG:  redo done at 0/2284770 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-10-19 14:16:25.859 +04 [29920] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-10-19 14:16:25.896 +04 [29920] LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.008 s, total=0.042 s; sync files=2, longest=0.005 s, average=0.004 s; distance=0 kB, estimate=0 kB; lsn=0/22847A8, redo lsn=0/22847A8
+2026-10-19 14:16:25.918 +04 [29072] LOG:  database system is ready to accept connections
+2026-10-19 14:16:53.113 +04 [26116] ERROR:  relation "gig" does not exist at character 36
+2026-10-19 14:16:53.113 +04 [26116] STATEMENT:  SELECT COUNT(*)::int AS total FROM gig WHERE statusgig = $1
+2026-10-19 14:21:25.900 +04 [29920] LOG:  checkpoint starting: time
+2026-10-19 14:21:25.982 +04 [29920] LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.004 s, total=0.082 s; sync files=1, longest=0.004 s, average=0.004 s; distance=4 kB, estimate=4 kB; lsn=0/22858A0, redo lsn=0/2285848
+2026-10-19 14:28:25.278 +04 [9948] ERROR:  relation "gig" does not exist at character 36
+2026-10-19 14:28:25.278 +04 [9948] STATEMENT:  SELECT COUNT(*)::int AS count FROM gig WHERE statusgig = $1
+2026-10-19 14:28:25.344 +04 [29660] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-10-19 14:31:26.599 +04 [23172] ERROR:  relation "gig" does not exist at character 36
+2026-10-19 14:31:26.599 +04 [23172] STATEMENT:  SELECT COUNT(*)::int AS count FROM gig WHERE statusgig = $1
+2026-10-19 14:31:26.606 +04 [28660] ERROR:  relation "gig" does not exist at character 398
+2026-10-19 14:31:26.606 +04 [28660] STATEMENT:  SELECT g.idgig            AS "idGig",
+	              g.titre            AS "titre",
+	              g.description      AS "description",
+	              g.budget           AS "budget",
+	              g.datepublication  AS "datePublication",
+	              u.idutilisateur    AS "auteurId",
+	              u.nom              AS "auteurNom",
+	              u.prenom           AS "auteurPrenom"
+	         FROM gig g
+	         LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
+	        WHERE g.statusgig = $1
+	        ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC
+	        LIMIT $2 OFFSET $3
+2026-10-19 14:31:26.625 +04 [28660] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-10-19 14:33:02.983 +04 [15740] ERROR:  relation "gig" does not exist at character 36
+2026-10-19 14:33:02.983 +04 [15740] STATEMENT:  SELECT COUNT(*)::int AS count FROM gig WHERE statusgig = $1
+2026-10-19 14:33:02.985 +04 [14348] ERROR:  relation "gig" does not exist at character 398
+2026-10-19 14:33:02.985 +04 [14348] STATEMENT:  SELECT g.idgig            AS "idGig",
+	              g.titre            AS "titre",
+	              g.description      AS "description",
+	              g.budget           AS "budget",
+	              g.datepublication  AS "datePublication",
+	              u.idutilisateur    AS "auteurId",
+	              u.nom              AS "auteurNom",
+	              u.prenom           AS "auteurPrenom"
+	         FROM gig g
+	         LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
+	        WHERE g.statusgig = $1
+	        ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC
+	        LIMIT $2 OFFSET $3
+2026-10-19 14:33:11.076 +04 [5432] ERROR:  relation "gig" does not exist at character 398
+2026-10-19 14:33:11.076 +04 [5432] STATEMENT:  SELECT g.idgig            AS "idGig",
+	              g.titre            AS "titre",
+	              g.description      AS "description",
+	              g.budget           AS "budget",
+	              g.datepublication  AS "datePublication",
+	              u.idutilisateur    AS "auteurId",
+	              u.nom              AS "auteurNom",
+	              u.prenom           AS "auteurPrenom"
+	         FROM gig g
+	         LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
+	        WHERE g.statusgig = $1
+	        ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC
+	        LIMIT $2 OFFSET $3
+2026-10-19 14:33:11.077 +04 [30628] ERROR:  relation "gig" does not exist at character 36
+2026-10-19 14:33:11.077 +04 [30628] STATEMENT:  SELECT COUNT(*)::int AS count FROM gig WHERE statusgig = $1
+2026-10-19 15:20:01.362 +04 [25408] FATAL:  database "microbesoins_test" does not exist

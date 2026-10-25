@@ -362,3 +362,20 @@ Afin de gérer les paiements à la publication, la table paiement a été modifi
 - La colonne idreponse devient optionnelle (NULL).
 Executer la dernière partie du code dans mise-a-jour-schema.sql, ligne 54 à 58
 
+# Page « Mes propositions »
+
+Les propositions sont lues dans la table `reponse` existante. Aucune migration supplémentaire n’est nécessaire pour cette page.
+
+Toutes les routes suivantes nécessitent un token `Authorization: Bearer …` :
+
+| Méthode | Route | Résultat |
+| --- | --- | --- |
+| GET | `/api/proposals` | Propositions envoyées par le compte connecté, classées par date décroissante |
+| GET | `/api/proposals/:id/need` | Besoin associé à une proposition du compte connecté |
+| GET | `/api/proposals/:id/profile` | Nom public et nombre de besoins validés publiés par le demandeur |
+| PATCH | `/api/proposals/:id/withdraw` | Passage atomique de `EN_ATTENTE` à `RETIREE`, sans suppression de l’historique |
+
+Le retrait renvoie `404` pour une proposition absente ou appartenant à un autre compte, et `409` si elle n’est plus en attente. Les statuts affichés sont `EN_ATTENTE`, `ACCEPTEE`, `REFUSEE` et `RETIREE` (les formes historiques `ACCEPTE`, `REFUSE` et `RETIRE` sont également affichées).
+
+Pour lancer les tests d’intégration, initialiser une base de test avec `MicroBesoins.sql`, puis configurer `DATABASE_URL` vers cette base et exécuter `npm run test:proposals` depuis `backend`. Les tests démarrent leur propre serveur HTTP, créent leurs comptes et propositions, puis nettoient leurs données. Ne pas les exécuter sur une base de production.
+
