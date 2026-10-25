@@ -10,3 +10,56 @@ main{box-sizing:border-box;max-width:1470px;padding-top:52px;padding-bottom:72px
 .action-card:has(.payments){gap:0;padding:28px}.owner-report{min-height:56px;margin:0 0 23px!important;padding:0!important;border:0!important;border-radius:12px!important;background:#eef1f5!important;color:#08295d!important;font-size:18px!important;transition:background .2s ease,transform .2s ease}.owner-report:hover{background:#e3e9f1!important;transform:translateY(-1px)}.owner-report:active{transform:translateY(1px)}.payments{padding-top:24px}.payments h2{margin-bottom:20px;color:#102e60;font-size:20px;font-weight:500}.payment-row{gap:6px;padding:0 0 20px;border:0}.payment-row+.payment-row{padding-top:0}.payment-row span{font-size:16px}.payment-row strong{font-size:15px;line-height:1.35}.payment-row small{font-size:13px}.payments>p:not(.payment-note){margin:0;color:#607693;font-size:15px;line-height:1.55}.payment-note{margin-top:4px!important;padding-top:0;color:#657997!important;font-size:13px!important;line-height:1.5!important}.action-card:has(.payments) .action-message{margin-top:18px!important}
 
 .action-message{position:relative;display:flex;align-items:center;justify-content:center;min-height:50px;margin-top:6px!important;padding:13px 14px 13px 43px!important;border:1px solid #9bd9bc;border-radius:11px!important;background:linear-gradient(135deg,#eafbf1,#f2fff7)!important;box-shadow:0 7px 17px rgba(12,129,76,.15);color:#087443!important;font-size:14px!important;font-weight:700;line-height:1.4;text-align:left!important;animation:notification-pop .45s cubic-bezier(.2,.9,.25,1.3) both}.action-message::before{content:'✓';position:absolute;left:14px;display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#12995d;color:#fff;font-size:14px;font-weight:900;box-shadow:0 3px 7px rgba(4,111,61,.28)}@keyframes notification-pop{0%{opacity:0;transform:translateY(12px) scale(.94)}65%{transform:translateY(-2px) scale(1.02)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ==========================================================================
+   À COLLER À LA FIN DE gig-detail.page.css
+   Vue propriétaire (maquette Figma) : prestataire retenu + propositions reçues
+   ========================================================================== */
+
+/* --- Bloc vert « Prestataire retenu » --- */
+.retained{display:flex;align-items:center;gap:16px;margin-top:34px;padding:20px 22px;border-radius:14px;background:#eaf6f0}
+.retained-icon{display:grid;place-items:center;flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:#fff;color:#12995d;font-size:22px}
+.retained-info{display:grid;flex:1;gap:3px;min-width:0}
+.retained-info small{color:#12805a;font-size:15px}
+.retained-info strong{color:#08295d;font-size:20px;font-weight:800}
+.retained-info span{color:#4f6686;font-size:18px}
+.retained-info span b{color:#08295d}
+.retained .secondary-action{flex:0 0 auto;padding:0 28px}
+
+/* --- Propositions reçues --- */
+.proposals{scroll-margin-top:24px}
+.proposal-list{display:grid;gap:14px;margin-top:18px}
+.proposal-card{padding:20px 22px;border:1px solid #dfe6f1;border-radius:14px;background:#fff}
+.proposal-head{display:grid;grid-template-columns:auto 1fr auto;column-gap:14px;align-items:start}
+.proposal-avatar{width:46px;height:46px;font-size:15px}
+.proposal-name{padding-top:11px;color:#0b4fb3;font-size:19px;font-weight:700;line-height:24px}
+.proposal-price{display:grid;justify-items:end;gap:8px}
+.proposal-price strong{color:#08295d;font-size:20px;font-weight:800;line-height:1.2}
+.proposal-status{padding:6px 12px;border-radius:99px;font-size:12px;font-weight:800;line-height:1}
+.proposal-status[data-status="ACCEPTE"]{background:#e8f8ee;color:#078050}
+.proposal-status[data-status="EN_ATTENTE"]{background:#fff3d9;color:#805300}
+.proposal-status[data-status="REFUSE"]{background:#eef1f5;color:#61738e}
+
+/* le message est aligné sur le nom (46px d'avatar + 14px d'espace) */
+.proposal-card .proposal-message{margin:4px 0 0 60px;color:#4f6686;font-size:17px;line-height:1.6;white-space:pre-wrap}
+
+.proposal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:16px}
+.proposal-actions .secondary-action,.proposal-actions .primary-action{min-height:44px;padding:0 18px;font-size:15px}
+/* « Contacter » discret quand la proposition est déjà traitée (comme dans la maquette) */
+.proposal-card:not([data-status="EN_ATTENTE"]) .secondary-action{border-color:transparent;color:#65738c}
+
+.proposals .empty-proposals{margin-top:14px}
+
+/* --- Champs des fenêtres modales (tarif, date de rendez-vous) --- */
+.report-modal input{box-sizing:border-box;width:100%;padding:12px 13px;border:1px solid #c7d8f0;border-radius:10px;color:#102e60;font:inherit}
+.report-modal input:focus{outline:2px solid #1767df33;border-color:#1767df}
+.report-modal textarea+label{margin-top:16px}
+
+@media(max-width:540px){
+  .retained{flex-wrap:wrap}
+  .retained .secondary-action{width:100%}
+  .proposal-head{grid-template-columns:auto 1fr}
+  .proposal-price{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+  .proposal-card .proposal-message{margin-left:0}
+  .proposal-actions{flex-direction:column-reverse}
+}

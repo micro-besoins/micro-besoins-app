@@ -360,3 +360,8 @@ curl -X PATCH -H "Authorization: Bearer <token>" http://localhost:3000/api/admin
 
 La migration `src/db/mise-a-jour-schema.sql` ajoute `idGig` à la table `paiement` et rend `idReponse` facultatif. Un paiement peut ainsi être lié à la publication d'un besoin ou à une réponse acceptée. Exécutez la migration avant de publier un besoin.
 
+## Modification de la Base de Données (SQL)
+Pour se convenir d'une heure, il faut stocker cette information. Il faut ajouter une colonne date_rendez_vous dans la table reponse.
+
+Dans pgAdmin, exécutez la requete ajout-rdv-table-reponse.sql
+
