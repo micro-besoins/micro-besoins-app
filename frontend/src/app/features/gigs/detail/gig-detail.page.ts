@@ -21,6 +21,7 @@ interface GigDetail {
     status:string|null; 
     category:string|null; 
     location:string|null; 
+    ownerId:number|null;
     ownerFirstName:string|null; 
     ownerLastName:string|null; 
     proposalCount:number; 
@@ -161,9 +162,13 @@ export class GigDetailPage {
     private fail(message:string){
         this.error.set(message);this.loading.set(false);
     }
-    protected contacterAuteur(idUtilisateur: number) {
-        this.router.navigate(['/messages'], { queryParams: { userId: idUtilisateur } });
-        this.notify('Redirection vers la messagerie...');
+    protected contacterAuteur(_idUtilisateur: number | null) {
+        const gig = this.gig();
+        if (!gig) return;
+        this.http.post<{ conversation: { id: number } }>('http://localhost:3000/api/conversations', { gigId: gig.id }, { headers: this.headers() }).subscribe({
+            next: ({ conversation }) => void this.router.navigate(['/messages'], { queryParams: { conversation: conversation.id } }),
+            error: (error: HttpErrorResponse) => this.notify(error.error?.message || 'Impossible d’ouvrir la conversation.'),
+        });
     }
     protected accepterProposition(idReponse: number) {
         if (!confirm('Voulez-vous vraiment accepter cette proposition ? Les autres seront automatiquement refusées.')) return;
@@ -204,14 +209,14 @@ export class GigDetailPage {
         }
 
         this.submittingProposal.set(true);
-        this.http.post(`http://localhost:3000/api/gigs/${gig.id}/propositions`, 
+        this.http.post<{ conversation: { id: number } }>(`http://localhost:3000/api/gigs/${gig.id}/propositions`,
         { message: `${msg}\n\nDisponibilités : ${availability}`, montant: amount }, 
         { headers: this.headers() }
         ).subscribe({
-        next: () => {
+        next: ({ conversation }) => {
             this.submittingProposal.set(false);
             this.closeProposal();
-            this.notify('Votre proposition a bien été envoyée !');
+            void this.router.navigate(['/messages'], { queryParams: { conversation: conversation.id } });
         },
         error: (err) => {
             this.submittingProposal.set(false);

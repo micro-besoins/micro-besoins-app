@@ -103,14 +103,15 @@ export class HomePage {
     }
     this.submittingProposal.set(true);
     this.proposalError.set('');
-    this.http.post(`http://localhost:3000/api/gigs/${gig.id}/propositions`, {
+    this.http.post<{ conversation: { id: number } }>(`http://localhost:3000/api/gigs/${gig.id}/propositions`, {
       message: `${message}\n\nDisponibilités : ${availability}`,
       montant: amount,
     }, { headers: this.headers() }).subscribe({
-      next: () => {
+      next: ({ conversation }) => {
         this.gigs.update((gigs) => gigs.map((item) => item.id === gig.id ? { ...item, proposalCount: item.proposalCount + 1 } : item));
         this.submittingProposal.set(false);
         this.closeProposal();
+        void this.router.navigate(['/messages'], { queryParams: { conversation: conversation.id } });
       },
       error: (error: HttpErrorResponse) => {
         this.submittingProposal.set(false);

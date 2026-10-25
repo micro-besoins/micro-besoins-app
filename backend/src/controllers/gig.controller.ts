@@ -3,6 +3,7 @@ import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions, 
 import { AppError } from '../utils/AppError';
 import { accepterProposition as accepterPropositionService, terminerProposition as terminerPropositionService } from '../services/gig.service';
 import { createProposition } from '../services/gig.service';
+import { getOrCreateConversation } from '../services/conversation.service';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
 
@@ -146,9 +147,27 @@ export async function createPropositionHandler(req: Request, res: Response, next
       throw new AppError(400, 'Message et montant valides requis.');
     }
 
-    const proposition = await createProposition(gigId, userId, message, montant);
-    res.status(201).json({ proposition });
-  } catch (error) {
-    next(error);
+    if (!Number.isInteger(gigId) || gigId <= 0) throw new AppError(400, 'Identifiant de besoin invalide.');
+    const content = typeof message === 'string' ? message.trim() : '';
+    const amount = Number(montant);
+    if (content.length < 10 || !Number.isFinite(amount) || amount <= 0) {
+      throw new AppError(400, 'Message et montant valides requis.');
+    }
+
+    const proposition = await createProposition(gigId, userId, content, amount);
+    const conversation = await getOrCreateConversation(gigId, userId);
+    res.status(201).json({ proposition, conversation });
+  } catch (error: any) {
+    const knownErrors = [
+      'Besoin introuvable.',
+      'Vous ne pouvez pas proposer vos services sur votre propre besoin.',
+      'Ce besoin n’est pas disponible pour les propositions.',
+      'Vous avez déjà envoyé une proposition pour ce besoin.',
+    ];
+    if (knownErrors.includes(error.message)) {
+      next(new AppError(error.message === 'Besoin introuvable.' ? 404 : 409, error.message));
+    } else {
+      next(error);
+    }
   }
 }

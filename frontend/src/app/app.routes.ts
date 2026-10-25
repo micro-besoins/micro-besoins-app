@@ -9,7 +9,7 @@ export const routes: Routes = [
   { path: 'besoins/:id/propositions', canActivate: [authGuard], title: 'Propositions reçues', loadComponent: () => import('./features/gigs/proposals/proposals.page').then((m) => m.ProposalsPage) },
   { path: 'mes-besoins', canActivate: [authGuard], title: 'Mes besoins', data: { title: 'Mes besoins' }, loadComponent: () => import('./features/navigation/placeholder.page').then((m) => m.NavigationPlaceholderPage) },
   { path: 'mes-propositions', canActivate: [authGuard], title: 'Mes propositions', data: { title: 'Mes propositions' }, loadComponent: () => import('./features/navigation/placeholder.page').then((m) => m.NavigationPlaceholderPage) },
-  { path: 'messages', canActivate: [authGuard], title: 'Messages', data: { title: 'Messages' }, loadComponent: () => import('./features/navigation/placeholder.page').then((m) => m.NavigationPlaceholderPage) },
+  { path: 'messages', canActivate: [authGuard], title: 'Messages', loadComponent: () => import('./features/messages/messages.page').then((m) => m.MessagesPage) },
   { path: 'auth', loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES) },
   { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then((m) => m.AdminPage) },
   { path: 'admin/:section/:id', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then((m) => m.AdminPage) },
