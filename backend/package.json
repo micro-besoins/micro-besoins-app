@@ -12,7 +12,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test:profile": "tsx --test tests/profile.integration.test.ts"
+    "test:proposals": "tsx --test tests/proposals.integration.test.ts",
+    "seed:proposal": "tsx scripts/demo-proposal.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
