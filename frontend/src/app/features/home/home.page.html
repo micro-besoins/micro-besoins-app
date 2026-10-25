@@ -3,12 +3,14 @@
     <span class="logo">m</span>
     <span>Micro-Besoins</span>
   </a>
+  
   <nav aria-label="Navigation principale">
     <a routerLink="/" class="active">Explorer</a>
     <a routerLink="/mes-besoins">Mes besoins</a>
     <a routerLink="/mes-propositions">Mes propositions</a>
     <a routerLink="/messages">Messages</a>
   </nav>
+  
   <div class="actions">
     <span class="notification" aria-label="Une notification">
       <ng-icon name="lucideBell" />
@@ -51,21 +53,27 @@
       Catégorie
       <select [ngModel]="category()" (ngModelChange)="category.set($event); search()" name="category">
         <option value="">Toutes les catégories</option>
-        @for (item of filters().categories; track item) { <option [value]="item">{{ item }}</option> }
+        @for (item of filters().categories; track item) { 
+          <option [value]="item">{{ item }}</option> 
+        }
       </select>
     </label>
     <label>
       Localité
       <select [ngModel]="location()" (ngModelChange)="location.set($event); search()" name="location">
         <option value="">Toutes les localités</option>
-        @for (item of filters().locations; track item) { <option [value]="item">{{ item }}</option> }
+        @for (item of filters().locations; track item) { 
+          <option [value]="item">{{ item }}</option> 
+        }
       </select>
     </label>
     <label>
       Budget
       <select [ngModel]="budget()" (ngModelChange)="budget.set($event); search()" name="budget">
         <option value="">Tous les budgets</option>
-        @for (range of budgetRanges; track range.value) { <option [value]="range.value">{{ range.label }}</option> }
+        @for (range of budgetRanges; track range.value) { 
+          <option [value]="range.value">{{ range.label }}</option> 
+        }
       </select>
     </label>
     <button type="button" class="reset-filters" (click)="reset()">↻ <span>Réinitialiser</span></button>
@@ -88,25 +96,24 @@
       </label>
     </div>
 
-    @if (loading()) {
-      <p class="state">Chargement des besoins…</p>
-    } @else if (error()) {
-      <p class="state error">{{ error() }}</p>
-    } @else if (!gigs().length) {
-      <p class="state">Aucun besoin trouvé</p>
-    } @else {
-      <!-- LISTE DES CARTES -->
+    @if (loading()) { 
+      <p class="state">Chargement des besoins…</p> 
+    } @else if (error()) { 
+      <p class="state error">{{ error() }}</p> 
+    } @else if (!gigs().length) { 
+      <p class="state">Aucun besoin trouvé</p> 
+    } @else { 
       <div class="cards">
-        @for (gig of gigs(); track gig.id) {
-          <article class="card" tabindex="0" role="link" [attr.aria-label]="'Consulter le détail de ' + gig.title" (click)="openDetail(gig.id)" (keydown.enter)="openDetail(gig.id)" (keydown.space)="$event.preventDefault(); openDetail(gig.id)">
+        @for (gig of gigs(); track gig.id) { 
+          <article class="card">
             
             <div class="card-top">
               <div class="category-wrap">
-                <span class="category-icon"><ng-icon [name]="categoryIcon(gig.category)" /></span>
+                <span class="category-icon"><ng-icon [name]="categoryIcon(gig.category)"/></span>
                 <span class="category">{{ gig.category || 'Besoin' }}</span>
               </div>
-              @if (gig.ownerId === user()?.id) {
-                <span class="badge">Votre besoin</span>
+              @if (gig.ownerId === user()?.id) { 
+                <span class="badge">Votre besoin</span> 
               }
             </div>
 
@@ -115,19 +122,19 @@
 
             <div class="meta">
               <span>
-                <i><ng-icon name="lucideMapPin" /></i>
+                <i><ng-icon name="lucideMapPin"/></i>
                 <small>Localité</small>
                 <b>{{ gig.location || 'Non renseignée' }}</b>
               </span>
               <span>
-                <i><ng-icon name="lucideCalendarDays" /></i>
+                <i><ng-icon name="lucideCalendarDays"/></i>
                 <small>Date souhaitée</small>
                 <b>{{ formatDate(gig.requestedAt || gig.publishedAt) }}</b>
               </span>
             </div>
 
             <div class="budget">
-              <small><ng-icon name="lucideCoins" />Budget proposé</small>
+              <small><ng-icon name="lucideCoins"/>Budget proposé</small>
               <strong>Rs {{ formatBudget(gig.budget) }}</strong>
             </div>
 
@@ -135,35 +142,26 @@
               <span class="avatar small">{{ initials(gig.ownerFirstName, gig.ownerLastName) }}</span>
               <span>
                 <small>Publié par</small>
-                <b>{{ owner(gig) }}</b>
+                <a [routerLink]="['/profil', gig.ownerId]">{{ owner(gig) }}</a>
               </span>
             </div>
 
             <div class="card-actions">
-              @if (gig.ownerId === user()?.id) {
-                <a 
-                  [routerLink]="['/besoins', gig.id, 'propositions']" 
-                  (click)="$event.stopPropagation()" 
-                  style="width: 100%; display: block; text-decoration: none;"
-                >
-                  <button class="primary" type="button" style="width: 100%;">
-                    Voir les propositions ({{ gig.proposalCount }})
-                  </button>
+              @if (gig.ownerId === user()?.id) { 
+                <a class="primary detail-link"  style="color: white;" [routerLink]="['/besoins', gig.id, 'propositions']">
+                  Voir les propositions ({{ gig.proposalCount }})
                 </a>
-              } @else {
+              } @else { 
                 <button class="primary" type="button" (click)="openProposal(gig, $event)">
                   Proposer mes services
                 </button>
               }
-              
-              <a class="outline detail-link" [routerLink]="['/besoins', gig.id]" (click)="$event.stopPropagation()">
-                Voir le détail
-              </a>
+              <a class="outline detail-link" [routerLink]="['/besoins', gig.id]">Voir le détail</a>
             </div>
 
-          </article>
+          </article> 
         }
-      </div>
+      </div> 
     }
   </section>
 </main>
@@ -172,6 +170,7 @@
   <p class="proposal-success" role="status">{{ proposalSuccess() }}</p>
 }
 
+<!-- MODALE DE PROPOSITION -->
 @if (proposalGig(); as gig) {
   <div class="proposal-backdrop" (click)="closeProposal()">
     <section class="proposal-modal" role="dialog" aria-modal="true" aria-labelledby="proposal-title" (click)="$event.stopPropagation()">
@@ -179,17 +178,34 @@
         <h2 id="proposal-title">Proposer mes services</h2>
         <button type="button" class="proposal-close" (click)="closeProposal()" aria-label="Fermer">×</button>
       </header>
-      <div class="proposal-summary"><p>{{ gig.category || 'Besoin' }}</p><strong>{{ gig.title }}</strong><span>Budget indicatif : Rs {{ formatBudget(gig.budget) }}</span></div>
+      
+      <div class="proposal-summary">
+        <p>{{ gig.category || 'Besoin' }}</p>
+        <strong>{{ gig.title }}</strong>
+        <span>Budget indicatif : Rs {{ formatBudget(gig.budget) }}</span>
+      </div>
+      
       <div class="proposal-form">
         <label for="proposal-message">Votre message <b>*</b></label>
         <textarea id="proposal-message" [value]="proposalMessage()" (input)="proposalMessage.set($any($event.target).value)" placeholder="Présentez votre expérience et votre approche…"></textarea>
+        
         <label for="proposal-price">Tarif proposé (Rs) <b>*</b></label>
         <input id="proposal-price" type="number" min="1" inputmode="decimal" [value]="proposalAmount()" (input)="proposalAmount.set($any($event.target).value)" placeholder="Ex. 1200">
+        
         <label for="proposal-availability">Disponibilités <b>*</b></label>
         <input id="proposal-availability" [value]="proposalAvailability()" (input)="proposalAvailability.set($any($event.target).value)" placeholder="Ex. Samedi matin entre 8 h et 12 h">
-        @if (proposalError()) { <p class="proposal-error">{{ proposalError() }}</p> }
+        
+        @if (proposalError()) { 
+          <p class="proposal-error">{{ proposalError() }}</p> 
+        }
       </div>
-      <footer class="proposal-actions"><button type="button" (click)="closeProposal()">Annuler</button><button type="button" class="send-proposal" [disabled]="submittingProposal()" (click)="submitProposal()">{{ submittingProposal() ? 'Envoi…' : 'Envoyer ma proposition' }}</button></footer>
+      
+      <footer class="proposal-actions">
+        <button type="button" (click)="closeProposal()">Annuler</button>
+        <button type="button" class="send-proposal" [disabled]="submittingProposal()" (click)="submitProposal()">
+          {{ submittingProposal() ? 'Envoi…' : 'Envoyer ma proposition' }}
+        </button>
+      </footer>
     </section>
   </div>
 }

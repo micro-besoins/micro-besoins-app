@@ -87,3 +87,52 @@ Les routes d'administration sont sous `/api/admin/*` et exigent un utilisateur d
 - L'envoi d'une proposition crée automatiquement la conversation avec l'auteur du besoin.
 - Le premier clic sur **Contacter l'auteur** crée la conversation et envoie un message d'introduction ; les clics suivants réutilisent la conversation sans envoyer de doublon.
 - Chaque message envoyé crée une notification pour son destinataire.
+| 400 | `INVALID_PARAMETER` / `INVALID_JSON` | Paramètre, id ou statut invalide, JSON mal formé |
+| 401 | `UNAUTHENTICATED` / `INVALID_TOKEN` | Token absent, invalide, expiré ou utilisateur inconnu |
+| 403 | `FORBIDDEN` | Utilisateur connecté mais non administrateur |
+| 404 | `NOT_FOUND` / `ROUTE_NOT_FOUND` | Publication, signalement ou route introuvable |
+| 409 | `ALREADY_PROCESSED` | Élément déjà accepté, refusé ou traité |
+| 500 | `DATABASE_ERROR` / `INTERNAL_ERROR` | Erreur serveur (détails dans les logs, jamais envoyés au client) |
+| 503 | `DATABASE_UNAVAILABLE` | Base de données injoignable |
+
+## Tester en local
+
+1. Chargez les données de test : `psql -U postgres -d microbesoins -f ../database/seed.sql` (l'utilisateur n° 1 est administrateur).
+2. Générez un token : `npm run token:admin -- 1`
+3. Appelez l'API :
+
+```bash
+curl -H "Authorization: Bearer <token>" http://localhost:3000/api/admin/stats
+curl -X PATCH -H "Authorization: Bearer <token>" http://localhost:3000/api/admin/publications/1/accepter
+```
+
+## Points à valider avec l'équipe
+
+- **Authentification :** ce ticket **vérifie** les tokens JWT (signature, expiration, rôle `ADMIN` relu en base). Le service de **connexion** qui émet ces tokens n'est pas inclus : il doit signer le token avec le même `JWT_SECRET` et placer l'id de l'utilisateur dans le champ standard `sub`.
+- **Valeurs de statut :** `EN_ATTENTE`, `VALIDE`, `REFUSE`, `ECHOUE`, `OUVERT`, `TRAITE`, `ADMIN`… sont définies dans `src/utils/constants.ts`. Si l'équipe utilise d'autres valeurs, il suffit de les changer à cet endroit.
+- **Table `signalement` :** ajoutée à `database/schema.sql` pour ce ticket (elle n'existait pas).
+- **Requêtes SQL :** toujours paramétrées (`$1`, `$2`…), jamais de concaténation de texte, pour éviter les injections SQL.
+
+## Modification du schéma de la table paiement :
+Afin de gérer les paiements à la publication, la table paiement a été modifiée :
+- Ajout de la colonne idgig (clé étrangère vers gig).
+- La colonne idreponse devient optionnelle (NULL).
+Executer la dernière partie du code dans mise-a-jour-schema.sql, ligne 54 à 58
+
+# Page « Mes propositions »
+
+Les propositions sont lues dans la table `reponse` existante. Aucune migration supplémentaire n’est nécessaire pour cette page.
+
+Toutes les routes suivantes nécessitent un token `Authorization: Bearer …` :
+
+| Méthode | Route | Résultat |
+| --- | --- | --- |
+| GET | `/api/proposals` | Propositions envoyées par le compte connecté, classées par date décroissante |
+| GET | `/api/proposals/:id/need` | Besoin associé à une proposition du compte connecté |
+| GET | `/api/proposals/:id/profile` | Nom public et nombre de besoins validés publiés par le demandeur |
+| PATCH | `/api/proposals/:id/withdraw` | Passage atomique de `EN_ATTENTE` à `RETIREE`, sans suppression de l’historique |
+
+Le retrait renvoie `404` pour une proposition absente ou appartenant à un autre compte, et `409` si elle n’est plus en attente. Les statuts affichés sont `EN_ATTENTE`, `ACCEPTEE`, `REFUSEE` et `RETIREE` (les formes historiques `ACCEPTE`, `REFUSE` et `RETIRE` sont également affichées).
+
+Pour lancer les tests d’intégration, initialiser une base de test avec `MicroBesoins.sql`, puis configurer `DATABASE_URL` vers cette base et exécuter `npm run test:proposals` depuis `backend`. Les tests démarrent leur propre serveur HTTP, créent leurs comptes et propositions, puis nettoient leurs données. Ne pas les exécuter sur une base de production.
+

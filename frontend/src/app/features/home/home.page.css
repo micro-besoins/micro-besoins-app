@@ -71,6 +71,16 @@ main { max-width:1660px; margin:0 auto; padding:45px 58px 80px; }.hero { margin-
   .hero h1 { font-size:29px; }
 }
 
+.primary, 
+button.primary, 
+a.primary {
+  background-color: #1767df; /* ou la couleur de ton bleu */
+  color: white;              /* Force le texte en blanc */
+  text-decoration: none;     /* Enlève le soulignement du lien */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .detail-link { display:flex; align-items:center; justify-content:center; height:56px; border-radius:10px; font-size:18px; font-weight:800; text-decoration:none; }
 
 /* Le détail est l'action secondaire des cartes : elle doit rester visible sans
@@ -78,3 +88,4 @@ main { max-width:1660px; margin:0 auto; padding:45px 58px 80px; }.hero { margin-
 .card{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease}.card:hover{transform:translateY(-5px);border-color:#c4d8f6;box-shadow:0 20px 34px rgba(24,70,135,.13)}.card h3{transition:color .2s ease}.card:hover h3{color:#075de1}.detail-link{position:relative;overflow:hidden;color:#53708f;transition:color .2s ease,background .2s ease,transform .2s ease}.detail-link::after{content:'→';margin-left:8px;font-size:21px;line-height:1;transition:transform .2s ease}.detail-link::before{content:'';position:absolute;inset:0;z-index:-1;background:#edf4ff;transform:translateX(-101%);transition:transform .26s ease}.detail-link:hover{color:#075de1;background:#edf4ff;transform:translateY(-1px)}.detail-link:hover::before{transform:translateX(0)}.detail-link:hover::after{transform:translateX(5px)}.detail-link:active{transform:translateY(1px) scale(.985)}.detail-link:focus-visible{outline:3px solid #75aaff;outline-offset:3px;color:#075de1;background:#edf4ff}.card:has(.detail-link:focus-visible){border-color:#75aaff;box-shadow:0 0 0 3px #75aaff26,0 20px 34px rgba(24,70,135,.12)}@media(prefers-reduced-motion:reduce){.card,.card h3,.detail-link,.detail-link::after,.detail-link::before{transition:none}.card:hover,.detail-link:hover,.detail-link:active{transform:none}}
 
 .card[role="link"]{cursor:pointer}.card[role="link"]:focus-visible{outline:3px solid #75aaff;outline-offset:4px;border-color:#75aaff}.card[role="link"]:active{transform:translateY(-1px) scale(.995)}
+.owner a { color:#0a2755; font-size:15px; font-weight:700; text-decoration:none; }.owner a:hover { text-decoration:underline; }.detail-link { display:flex; align-items:center; justify-content:center; min-height:56px; border-radius:10px; text-decoration:none; font-size:18px; font-weight:800; }
