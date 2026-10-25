@@ -22,8 +22,16 @@ function parseMotif(raw: unknown): string | null {
 
 export async function list(req: Request, res: Response): Promise<void> {
   const { page, limit } = parsePagination(req.query);
-  const status = parseStatus(req.query.status, GIG_STATUSES, GIG_STATUS.PENDING);
+  const status = req.query.status === undefined || req.query.status === ''
+    ? undefined
+    : parseStatus(req.query.status, GIG_STATUSES, GIG_STATUS.PENDING);
   res.json(await publicationsService.listPublications(status, page, limit));
+}
+
+export async function detail(req: Request, res: Response): Promise<void> {
+  const publication = await publicationsService.getPublicationDetail(parseId(req.params.id));
+  if (!publication) throw new AppError(404, 'NOT_FOUND', 'Publication introuvable.');
+  res.json({ publication });
 }
 
 export async function accept(req: Request, res: Response): Promise<void> {

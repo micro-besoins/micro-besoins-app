@@ -9,7 +9,7 @@ import { AdminService } from './admin.service';
 import { Dossier, Section } from './admin.types';
 import { PublicationDetail } from './publication-detail';
 
-@Component({selector:'app-admin',imports:[RouterLink,CurrencyPipe,DatePipe,PublicationDetail],templateUrl:'./admin.page.html',styleUrl:'./admin.page.css'})
+@Component({selector:'app-admin',imports:[RouterLink,CurrencyPipe,DatePipe,PublicationDetail],templateUrl:'./admin.page.html',styleUrls:['./admin.page.css', './admin-detail-compact.css']})
 export class AdminPage {
   private readonly adminApi = inject(AdminService);
   private readonly auth = inject(AuthService);
@@ -41,7 +41,8 @@ export class AdminPage {
     // Recharge les données quand la section change
     effect(() => {
       const currentSection = this.current();
-      this.load(currentSection);
+      this.load(currentSection, this.id());
+      this.loadStats();
     });
 
     // Ouvre la fenêtre de confirmation dès qu'elle apparaît dans la page
@@ -52,12 +53,27 @@ export class AdminPage {
     });
   }
 
-  count(key: Section): number { return this.items().filter(d => d.section === key && this.pending(d)).length; }
+  count(key: Section): number {
+    const stats = this.stats();
+    if (!stats) return 0;
+    if (key === 'publications') return stats.publicationsAValider;
+    if (key === 'paiements') return stats.paiementsEchoues;
+    return stats.signalementsOuverts;
+  }
   pending(d: Dossier): boolean { return d.status === this.sections.find(s => s.key === d.section)?.pending; }
+  canAct(d: Dossier): boolean { return (d.section === 'publications' || d.section === 'signalements') && this.pending(d); }
   ask(item:Dossier, action:string): void { this.note.set(''); this.confirmation.set({item,action}); }
 
-  private load(currentSection: string): void {
+  private load(currentSection: Section, detailId: string | null = null): void {
     this.loading.set(true);
+
+    if (currentSection === 'publications' && detailId) {
+      this.adminApi.getPublication(Number(detailId)).subscribe({
+        next: ({ publication }) => { this.items.set([this.mapDossier(currentSection, publication)]); this.loading.set(false); },
+        error: () => { this.notice.set('Impossible de charger les données.'); this.loading.set(false); },
+      });
+      return;
+    }
 
     let request;
     if (currentSection === 'publications') request = this.adminApi.getPublications();
@@ -66,19 +82,7 @@ export class AdminPage {
 
     request.subscribe({
       next: (res: any) => {
-        const mapped = res.data.map((p: any) => ({
-          id: String(p.idGig || p.idPaiement || p.idSignalement),
-          section: currentSection,
-          title: p.titre || p.gigTitre || 'Sans titre',
-          author: `${p.auteurPrenom || ''} ${p.auteurNom || p.payeurNom || ''}`,
-          category: 'Général',
-          city: 'Non spécifié',
-          amount: p.budget || p.montant || 0,
-          status: p.status,
-          description: p.description || p.motif || '',
-          email: p.auteurEmail || p.payeurEmail || '',
-          date: p.datePublication || p.datePaiement || p.dateSignalement
-        }));
+        const mapped = res.data.map((p: any) => this.mapDossier(currentSection, p));
         this.items.set(mapped);
         this.loading.set(false);
       },
@@ -88,6 +92,44 @@ export class AdminPage {
         this.loading.set(false);
       }
     });
+  }
+
+  private loadStats(): void {
+    this.adminApi.getStats().subscribe({
+      next: (stats) => this.stats.set(stats),
+      error: () => this.stats.set(null),
+    });
+  }
+
+  private mapDossier(currentSection: Section, p: any): Dossier {
+    const rawPayments = p.payments || [];
+    const publicationPayment = rawPayments.find((item: any) => item.label === 'Frais de publication') || null;
+    const servicePayment = rawPayments.find((item: any) => item.label === 'Paiement du service') || null;
+    const selectedProposal = (p.proposals || []).find((item: any) => item.status === 'ACCEPTE' || item.status === 'TERMINE') || null;
+    return {
+          id: String(currentSection === 'signalements' ? p.idSignalement : p.idGig || p.idPaiement),
+          section: currentSection,
+          title: p.titre || p.gigTitre || 'Sans titre',
+          author: currentSection === 'signalements'
+            ? `${p.signaleurPrenom || ''} ${p.signaleurNom || ''}`.trim() || 'Utilisateur inconnu'
+            : `${p.auteurPrenom || ''} ${p.auteurNom || p.payeurNom || ''}`.trim() || 'Utilisateur inconnu',
+          authorId: currentSection === 'signalements' ? p.signaleurId : p.auteurId || p.payeurId || null,
+          category: currentSection === 'publications' ? p.categorie || 'Non spécifiée' : currentSection === 'paiements' ? p.gigCategory || '' : 'Général',
+          city: currentSection === 'publications' ? p.localite || 'Non spécifiée' : currentSection === 'paiements' ? p.gigLocation || '' : 'Non spécifié',
+          amount: p.budget || p.montant || 0,
+          status: p.status,
+          description: p.description || p.motif || '',
+          email: currentSection === 'signalements' ? p.signaleurEmail || '' : p.auteurEmail || p.payeurEmail || '',
+          date: p.datePublication || p.datePaiement || p.dateSignalement,
+          details: currentSection === 'publications' ? {
+            memberSince: '', desiredDate: p.dateSouhaitee,
+            publicationPayment: publicationPayment && { status: publicationPayment.status, amount: Number(publicationPayment.amount), date: publicationPayment.date || null },
+            servicePayment: servicePayment && { status: servicePayment.status, amount: Number(servicePayment.amount), date: servicePayment.date || null },
+            serviceAmount: selectedProposal ? Number(selectedProposal.amount) : null,
+            proposals: (p.proposals || []).map((item: any) => ({ name: `${item.prenom || ''} ${item.nom || ''}`.trim(), email: item.email, availability: item.status, description: item.description, amount: Number(item.amount), accepted: item.status === 'ACCEPTE' || item.status === 'TERMINE' })),
+            reviews: (p.reviews || []).map((item: any) => ({ name: `${item.prenom || ''} ${item.nom || ''}`.trim(), rating: item.rating, comment: item.comment || '' })),
+          } : undefined,
+        };
   }
 
   confirm(): void {
@@ -115,12 +157,14 @@ export class AdminPage {
       next: () => {
         this.confirmation.set(null);
         this.notice.set(`${request.item.id} : ${result}.`);
-        this.load(this.current());
+        this.load(this.current(), this.id());
+        this.loadStats();
       },
       error: (err: HttpErrorResponse) => {
         this.confirmation.set(null);
         this.notice.set(err.status === 409 ? 'Ce dossier a déjà été traité.' : 'Action impossible, réessayez.');
-        this.load(this.current());
+        this.load(this.current(), this.id());
+        this.loadStats();
       },
     });
   }
@@ -130,6 +174,8 @@ export class AdminPage {
   protected initials(firstName: string | null, lastName: string | null): string {
     return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase() || '?';
   }
+
+  summary(d: Dossier): string { return [d.category, d.city].filter(Boolean).join(' · '); }
 
   protected goHome(): void {
     this.profileOpen.set(false);

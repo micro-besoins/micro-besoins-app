@@ -1,5 +1,5 @@
 import { pool } from '../config/db';
-import { GIG_STATUS, PAYMENT_STATUS } from '../utils/constants';
+import { GIG_STATUS, PAYMENT_STATUS, REPORT_STATUS } from '../utils/constants';
 
 export interface GigFilters {
   keyword?: string;
@@ -90,7 +90,7 @@ function gigSelect(capabilities: GigCapabilities): string {
 export async function findGigs(filters: GigFilters) {
   const capabilities = await getCapabilities();
   const values: string[] = [];
-  const conditions: string[] = [`g.statusgig = 'VALIDE'`];
+  const conditions: string[] = [`g.statusgig = '${GIG_STATUS.VALIDATED}'`];
   const add = (condition: string, value: string) => {
     values.push(value);
     conditions.push(condition.replace('?', `$${values.length}`));
@@ -131,10 +131,56 @@ export async function findGigById(id: number, viewerId: number | null) {
   const gig = rows[0];
   if (!gig) return null;
  
-  const isOwner = viewerId !== null && gig.ownerId === viewerId;
+  const isOwner = viewerId !== null && Number(gig.ownerId) === Number(viewerId);
   if (gig.status !== GIG_STATUS.VALIDATED && !isOwner) return null;
  
-  return { ...gig, isOwner };
+  const payments = isOwner
+    ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null; responseId: number | null }>(
+      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt", idreponse AS "responseId"
+         FROM paiement
+        WHERE idgig = $1
+        ORDER BY idpaiement DESC`,
+      [id],
+    )).rows
+    : [];
+
+  let proposals: any[] = [];
+  if (isOwner) {
+    const { rows: props } = await pool.query(
+      `SELECT r.idreponse AS id,
+              r.contenu AS message,
+              r.prixpropose AS montant,
+              r.statusreponse AS status,
+              r.date_rendez_vous AS "dateRdv",
+              u.idutilisateur AS "auteurId",
+              u.prenom AS "auteurPrenom",
+              u.nom AS "auteurNom"
+        FROM reponse r
+        JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
+        WHERE r.idgig = $1
+        ORDER BY r.datereponse DESC`,
+      [id]
+    );
+    proposals = props;
+  }
+
+  return { ...gig, isOwner, payments, proposals };
+}
+
+export async function reportGig(id: number, reporterId: number, reason: string) {
+  const { rows: gigs } = await pool.query<{ status: string }>(
+    `SELECT statusgig AS status FROM gig WHERE idgig = $1`,
+    [id],
+  );
+  if (!gigs[0] || gigs[0].status !== GIG_STATUS.VALIDATED) return null;
+
+  const { rows } = await pool.query<{ id: number }>(
+    `INSERT INTO signalement (idgig, idutilisateur, motif, statussignalement, datesignalement)
+     VALUES ($1, $2, $3, $4, NOW())
+     RETURNING idsignalement AS id`,
+    [id, reporterId, reason, REPORT_STATUS.OPEN],
+  );
+  return rows[0];
 }
 
 export async function createGig(input: CreateGigInput) {
@@ -151,6 +197,122 @@ export async function createGig(input: CreateGigInput) {
       `INSERT INTO paiement (idgig, idutilisateur, methode, statuspaiement, montant)
        VALUES ($1, $2, 'mcb', 'EN_ATTENTE', 75)`,
       [rows[0].id, input.ownerId]
+    );
+    await client.query('COMMIT');
+    return rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function accepterProposition(idReponse: number, ownerId: number, dateRdv: string | null) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `SELECT r.idgig, g.idutilisateur AS "ownerId"
+        FROM reponse r JOIN gig g ON g.idgig = r.idgig
+        WHERE r.idreponse = $1`,
+      [idReponse]
+    );
+
+    const reponse = rows[0];
+    if (!reponse) throw new Error("Proposition introuvable.");
+    if (Number(reponse.ownerId) !== Number(ownerId)) throw new Error("Vous n'êtes pas le propriétaire de cette annonce.");
+    
+    const accepted = await client.query(
+      `UPDATE reponse SET statusreponse = 'ACCEPTE', date_rendez_vous = $1
+        WHERE idreponse = $2 AND statusreponse = 'EN_ATTENTE'`,
+      [dateRdv, idReponse]
+    );
+    if (accepted.rowCount === 0) throw new Error('Cette proposition a déjà été traitée.');
+    
+    await client.query(
+      `UPDATE reponse SET statusreponse = 'REFUSE'
+        WHERE idgig = $1 AND idreponse != $2 AND statusreponse = 'EN_ATTENTE'`,
+      [reponse.idgig, idReponse]
+    );
+
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function terminerProposition(idReponse: number, ownerId: number) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ idgig: number; montant: string; ownerId: number; providerId: number }>(
+      `SELECT r.idgig, r.prixpropose AS montant, g.idutilisateur AS "ownerId", r.idutilisateur AS "providerId"
+         FROM reponse r
+         JOIN gig g ON g.idgig = r.idgig
+        WHERE r.idreponse = $1
+        FOR UPDATE`,
+      [idReponse],
+    );
+    const response = rows[0];
+    if (!response) throw new Error('Proposition introuvable.');
+    if (Number(response.ownerId) !== Number(ownerId)) throw new Error('Vous n’êtes pas le propriétaire de cette annonce.');
+
+    const completed = await client.query(
+      `UPDATE reponse
+          SET statusreponse = 'TERMINE'
+        WHERE idreponse = $1 AND statusreponse = 'ACCEPTE'`,
+      [idReponse],
+    );
+    if (completed.rowCount === 0) throw new Error('Seule une proposition acceptée peut être terminée.');
+
+    await client.query(
+      `INSERT INTO paiement (montant, methode, datepaiement, statuspaiement, idutilisateur, idreponse, idgig)
+       SELECT r.prixpropose, 'plateforme', NOW(), 'REUSSI', r.idutilisateur, r.idreponse, r.idgig
+         FROM reponse r
+        WHERE r.idreponse = $1
+          AND NOT EXISTS (SELECT 1 FROM paiement p WHERE p.idreponse = r.idreponse)`,
+      [idReponse],
+    );
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createProposition(gigId: number, userId: number, message: string, montant: number) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: gigs } = await client.query<{ ownerId: number; status: string | null }>(
+      'SELECT idutilisateur AS "ownerId", statusgig AS status FROM gig WHERE idgig = $1 FOR KEY SHARE',
+      [gigId],
+    );
+    const gig = gigs[0];
+    if (!gig) throw new Error('Besoin introuvable.');
+    if (Number(gig.ownerId) === Number(userId)) throw new Error('Vous ne pouvez pas proposer vos services sur votre propre besoin.');
+    if (gig.status !== GIG_STATUS.VALIDATED) throw new Error('Ce besoin n’est pas disponible pour les propositions.');
+
+    const existing = await client.query(
+      'SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 LIMIT 1',
+      [gigId, userId],
+    );
+    if ((existing.rowCount ?? 0) > 0) throw new Error('Vous avez déjà envoyé une proposition pour ce besoin.');
+
+    const { rows } = await client.query(
+      `INSERT INTO reponse (idgig, idutilisateur, contenu, prixpropose, statusreponse, datereponse)
+       VALUES ($1, $2, $3, $4, 'EN_ATTENTE', NOW())
+       RETURNING idreponse AS id`,
+      [gigId, userId, message, montant],
     );
     await client.query('COMMIT');
     return rows[0];

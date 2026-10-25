@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -31,7 +31,7 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
   imports: [FormsModule, RouterLink, NgIcon],
   providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
-  styleUrl: './home.page.css',
+  styleUrls: ['./home.page.css', './home-proposal-modal.css', './home-proposal-success.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
@@ -55,6 +55,13 @@ export class HomePage {
   protected readonly location = signal('');
   protected readonly budget = signal('');
   protected readonly sort = signal<'recent' | 'budget-asc' | 'budget-desc'>('recent');
+  protected readonly proposalGig = signal<Gig | null>(null);
+  protected readonly proposalMessage = signal('');
+  protected readonly proposalAmount = signal('');
+  protected readonly proposalAvailability = signal('');
+  protected readonly proposalError = signal('');
+  protected readonly proposalSuccess = signal('');
+  protected readonly submittingProposal = signal(false);
   protected readonly countLabel = computed(() => `${this.gigs().length} annonce${this.gigs().length > 1 ? 's' : ''}`);
 
   constructor() {
@@ -67,6 +74,52 @@ export class HomePage {
       error: () => this.error.set('Impossible de charger les filtres.'),
     });
     this.search();
+  }
+
+  protected openDetail(id: number): void { void this.router.navigate(['/besoins', id]); }
+
+  protected openProposal(gig: Gig, event: Event): void {
+    event.stopPropagation();
+    this.proposalGig.set(gig);
+    this.proposalError.set('');
+    this.proposalSuccess.set('');
+  }
+
+  protected closeProposal(): void {
+    if (this.submittingProposal()) return;
+    this.proposalGig.set(null);
+    this.proposalMessage.set('');
+    this.proposalAmount.set('');
+    this.proposalAvailability.set('');
+    this.proposalError.set('');
+  }
+
+  protected submitProposal(): void {
+    const gig = this.proposalGig();
+    const message = this.proposalMessage().trim();
+    const availability = this.proposalAvailability().trim();
+    const amount = Number(this.proposalAmount());
+    if (!gig || message.length < 10 || availability.length < 3 || !Number.isFinite(amount) || amount <= 0) {
+      this.proposalError.set('Complétez un message, un tarif et vos disponibilités.');
+      return;
+    }
+    this.submittingProposal.set(true);
+    this.proposalError.set('');
+    this.http.post<{ conversation: { id: number } }>(`http://localhost:3000/api/gigs/${gig.id}/propositions`, {
+      message: `${message}\n\nDisponibilités : ${availability}`,
+      montant: amount,
+    }, { headers: this.headers() }).subscribe({
+      next: () => {
+        this.gigs.update((gigs) => gigs.map((item) => item.id === gig.id ? { ...item, proposalCount: item.proposalCount + 1 } : item));
+        this.submittingProposal.set(false);
+        this.closeProposal();
+        this.proposalSuccess.set('Proposition envoyée. La conversation est disponible dans Messages.');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.submittingProposal.set(false);
+        this.proposalError.set(error.error?.message || 'Impossible d’envoyer votre proposition.');
+      },
+    });
   }
 
   protected search(): void {

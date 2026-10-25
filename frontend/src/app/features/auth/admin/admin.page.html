@@ -8,7 +8,7 @@
   @if (!id()) {
   <p class="eyebrow">Administration</p>
   <h1>{{ id() ? 'Consultation du dossier' : 'Tableau de bord' }}</h1>
-  <p class="intro">Modérez les publications et suivez les opérations fictives.</p>
+  <p class="intro">Modérez les publications et suivez les opérations de paiement.</p>
   }
   @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
   @if (invalid()) {
@@ -20,10 +20,10 @@
         <app-publication-detail [dossier]="d" (approve)="ask(d,'accepter')" (refuse)="ask(d,'refuser')" (report)="ask(d,'signaler')" />
       } @else {
       <article class="panel detail"><div class="detail-heading"><div><p class="eyebrow">{{ d.id }}</p><h2>{{ d.title }}</h2></div><span class="badge" [class.pending]="pending(d)">{{ d.status }}</span></div>
-        <dl><div><dt>{{ d.section === 'signalements' ? 'Signalant' : 'Auteur' }}</dt><dd>{{ d.author }}</dd></div><div><dt>Date</dt><dd>{{ d.date | date:'dd/MM/yyyy' }}</dd></div><div><dt>Catégorie</dt><dd>{{ d.category }}</dd></div><div><dt>Lieu</dt><dd>{{ d.city }}</dd></div>@if (d.section !== 'signalements') { <div><dt>Montant</dt><dd>{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</dd></div> }<div><dt>Contact</dt><dd>{{ d.email }}</dd></div></dl>
+        <dl><div><dt>{{ d.section === 'signalements' ? 'Signalant' : 'Auteur' }}</dt><dd>{{ d.author }}</dd></div><div><dt>Date</dt><dd>{{ d.date | date:'dd/MM/yyyy' }}</dd></div>@if (d.section !== 'paiements') { <div><dt>Catégorie</dt><dd>{{ d.category }}</dd></div><div><dt>Lieu</dt><dd>{{ d.city }}</dd></div> } @if (d.section !== 'signalements') { <div><dt>Montant</dt><dd>{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</dd></div> }<div><dt>Contact</dt><dd>{{ d.email }}</dd></div></dl>
         <h3>{{ d.section === 'signalements' ? 'Motif du signalement' : 'Description' }}</h3><p class="description">{{ d.description }}</p>
         <div class="detail-actions">
-          @if (pending(d)) {
+          @if (canAct(d)) {
             @if (d.section === 'signalements') { <button class="primary" (click)="ask(d,'traiter')">Traiter le signalement</button> }
             @else { <button class="primary" (click)="ask(d,'accepter')">Accepter</button><button class="danger" (click)="ask(d,'refuser')">Refuser</button> }
           }
@@ -40,7 +40,7 @@
     <section class="panel listing" aria-label="Dossiers à consulter">
       <nav class="tabs" aria-label="Sections administrateur">@for (s of sections; track s.key) { <a [routerLink]="['/admin',s.key]" [class.active]="current()===s.key" [attr.aria-current]="current()===s.key ? 'page' : null">{{ s.label }}</a> }</nav>
       <div class="table-scroll"><table><caption class="sr-only">Liste des {{ current() }}</caption><thead><tr><th>{{ current()==='publications' ? 'Annonce' : current()==='paiements' ? 'Transaction' : 'Signalement' }}</th><th>{{ current()==='signalements' ? 'Signalant' : 'Auteur' }}</th>@if (current()!=='signalements') { <th>{{ current()==='publications' ? 'Budget' : 'Montant' }}</th> }<th>Statut</th><th>Actions</th></tr></thead><tbody>
-        @for (d of rows(); track d.id) { <tr><td><strong>{{ d.title }}</strong><small>{{ d.category }} · {{ d.city }}</small></td><td>{{ d.author }}</td>@if (current()!=='signalements') { <td class="amount">{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</td> }<td><span class="badge" [class.pending]="pending(d)" [class.refused]="d.status==='Refusé'">{{ d.status }}</span></td><td><div class="row-actions"><a class="button" [routerLink]="['/admin',d.section,d.id]">Consulter</a>@if (pending(d)) { @if (d.section==='signalements') { <button (click)="ask(d,'traiter')">Traiter</button> } @else { <button (click)="ask(d,'accepter')">Approuver</button><button class="danger" (click)="ask(d,'refuser')">Refuser</button> } }</div></td></tr> }
+        @for (d of rows(); track d.id) { <tr><td><strong>{{ d.title }}</strong>@if (summary(d); as details) { <small>{{ details }}</small> }</td><td>{{ d.author }}</td>@if (current()!=='signalements') { <td class="amount">{{ d.amount | currency:'MUR':'Rs ':'1.0-0' }}</td> }<td><span class="badge" [class.pending]="pending(d)" [class.refused]="d.status==='REFUSE' || d.status==='Refusé'">{{ d.status }}</span></td><td><div class="row-actions"><a class="button" [routerLink]="['/admin',d.section,d.id]">Consulter</a>@if (canAct(d)) { @if (d.section==='signalements') { <button (click)="ask(d,'traiter')">Traiter</button> } @else { <button (click)="ask(d,'accepter')">Approuver</button><button class="danger" (click)="ask(d,'refuser')">Refuser</button> } }</div></td></tr> }
         @empty { <tr><td colspan="5" class="empty">Aucun dossier dans cette section.</td></tr> }
       </tbody></table></div>
     </section>

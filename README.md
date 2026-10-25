@@ -1,79 +1,164 @@
-# MicroBesoins — Base de données
+# Micro-Besoins
 
-## Description
+Micro-Besoins est une plateforme de services de proximité : une personne publie un besoin, des prestataires envoient leurs propositions, puis le propriétaire du besoin choisit une proposition et suit le service jusqu'à sa finalisation.
 
-Ce dossier contient le script SQL de la base de données du projet **MicroBesoins**. La base de données est développée avec **PostgreSQL** et permet de gérer les utilisateurs, les offres de services (*gigs*), les réponses, les paiements et les avis.
+## Fonctionnalités principales
 
-## Technologies utilisées
+- Inscription, connexion et rôles utilisateur / administrateur.
+- Publication d'un besoin en deux étapes, suivie d'une validation par un administrateur.
+- Exploration des annonces avec recherche, filtres et réinitialisation des filtres.
+- Consultation du détail d'une annonce.
+- Envoi d'une proposition avec message, tarif et disponibilités.
+- Consultation des propositions reçues par le propriétaire d'une annonce.
+- Acceptation d'une proposition et ajout facultatif d'une date de rendez-vous.
+- Confirmation de fin de service : la proposition passe à l'état `TERMINE` et le paiement du prestataire est enregistré.
+- Suivi des paiements de publication et de service depuis le détail de l'annonce.
+- Signalement d'une annonce et notifications.
+- Messagerie privée liée à une annonce : création automatique après une proposition, envoi et lecture des messages, conversations vides et notifications de nouveaux messages.
+- Menu de profil et déconnexion accessibles depuis les pages de l'application.
 
-- **SGBD :** PostgreSQL
-- **Langage :** SQL
+> Les informations de paiement sont gérées par l'application pour le suivi du parcours. Aucun prestataire de paiement externe n'est configuré dans ce projet.
 
-## Structure de la base de données
+## Prérequis
 
-La base de données comprend cinq tables principales :
+- Node.js 20 ou une version compatible
+- PostgreSQL
+- npm
 
-|     Table     | Description |
-|---------------|-------------|
-| `utilisateur` | Stocke les informations des utilisateurs, notamment leur nom, prénom, adresse e-mail, mot de passe et rôle. |
-| `gig`         | Contient les offres de services publiées par les utilisateurs, avec leur titre, description, budget et statut. |
-| `reponse`     | Enregistre les réponses aux offres, le contenu proposé, le prix et le statut de chaque réponse. |
-| `paiement`    | Stocke les informations relatives aux paiements, notamment le montant, la méthode et le statut. |
-| `avis`        | Permet d'enregistrer les notes et les commentaires associés aux offres. |
+## Installation
 
-## Relations entre les tables
+Clonez le dépôt, puis installez les dépendances du backend et du frontend :
 
-- Un utilisateur peut publier plusieurs offres (`gig`).
-- Un utilisateur peut envoyer plusieurs réponses (`reponse`).
-- Une offre peut recevoir plusieurs réponses.
-- Un utilisateur peut effectuer plusieurs paiements.
-- Un paiement est associé à une réponse.
-- Les avis sont liés à un utilisateur et à une offre.
+```powershell
+cd backend
+npm install
 
-Les relations sont assurées par des clés étrangères (`FOREIGN KEY`). La règle `ON DELETE CASCADE` permet de supprimer automatiquement les enregistrements dépendants lorsqu'un enregistrement référencé est supprimé.
+cd ..\frontend
+npm install
+```
 
-## Installation et création
+## Base de données
 
-La table `utilisateur` utilise la colonne `motdepasse`, qui contient le hash bcrypt (jamais le mot de passe en clair). Le champ de l'API reste nommé `password`. Pour une base existante utilisant encore `password`, exécutez une fois le script `backend/src/db/mise-a-jour-schema.sql`.
+1. Créez une base PostgreSQL.
+2. Exécutez les scripts ci-dessous dans cet ordre. Les scripts complémentaires peuvent être relancés sans perdre les données existantes.
 
-### Initialiser les catégories
+```text
+MicroBesoins.sql
+backend/src/db/mise-a-jour-schema.sql
+backend/src/db/ajout-architecture-paiement.sql
+backend/src/db/ajout-rdv-table-reponse.sql
+backend/src/db/ajout-notification.sql
+backend/src/db/ajout-messagerie.sql
+backend/src/db/ajout-signalement-message.sql
+backend/src/db/ajout-frais-publication-existants.sql
+```
 
-Après la création des tables, exécutez `backend/src/db/mise-a-jour-schema.sql`. Ce script crée la table de référence `categorie` et ajoute les catégories disponibles : Nettoyage, Jardinage, Aide informatique, Petits travaux et Cours particuliers. La liste de publication est donc disponible même si aucune annonce n'existe encore.
+Pour charger des annonces d'exemple après avoir créé au moins un utilisateur, exécutez aussi :
 
-Les annonces de démonstration sont facultatives : exécutez ensuite `backend/src/db/jeu-de-donnees-demo.sql` uniquement pour tester la recherche et les filtres avec des annonces initiales.
+```text
+backend/src/db/jeu-de-donnees-demo.sql
+```
 
-### Scripts SQL disponibles
+Les catégories sont définies dans la table `categorie`. Elles doivent être présentes dans la base pour que le sélecteur de catégorie de publication soit rempli.
 
-Après avoir créé la base et les tables initiales, exécutez les scripts dans cet ordre :
+## Reproduire le même résultat de démonstration
 
+Pour obtenir les annonces, les catégories, les paiements et les pages d'administration comme dans la démonstration, partez d'une base PostgreSQL vide et suivez cette séquence :
+
+1. Exécutez les scripts de la section **Base de données**, dans l'ordre indiqué.
+2. Lancez le backend et le frontend.
+3. Créez deux comptes depuis l'interface : un compte demandeur et un compte destiné à l'administration.
+4. Dans PostgreSQL, donnez le rôle administrateur au second compte en remplaçant l'adresse ci-dessous :
+
+```sql
+UPDATE utilisateur
+SET role = 'ADMIN'
+WHERE email = 'admin@exemple.mu';
+```
+
+5. Exécutez `backend/src/db/jeu-de-donnees-demo.sql`. Les annonces de démonstration seront associées au premier utilisateur créé et seront visibles dans **Explorer**.
+6. Connectez-vous avec le compte administrateur pour accéder à `/admin` et valider les publications en attente. Chaque annonce validée reçoit automatiquement les frais de publication de **Rs 75**.
+
+Pour une base qui contenait déjà des annonces validées, exécutez aussi `backend/src/db/ajout-frais-publication-existants.sql` : il ajoute les frais manquants et confirme les frais encore en attente, sans supprimer de donnée.
+
+### Vérification rapide du parcours complet
+
+1. Avec un demandeur, publiez un besoin ; il apparaît avec le statut `EN_ATTENTE`.
+2. Avec l'administrateur, validez-le dans **Publications**.
+3. Avec un autre utilisateur, ouvrez l'annonce et envoyez une proposition.
+4. Revenez sur le détail avec le demandeur : la proposition, la conversation et le suivi de paiement doivent apparaître.
+5. Acceptez la proposition, puis marquez le service comme terminé : le paiement du prestataire est créé.
+
+## Configuration du backend
+
+Créez le fichier `backend/.env` à partir de `backend/.env.example`, puis renseignez au minimum :
+
+```env
+PORT=3000
+DATABASE_URL=postgresql://utilisateur:motdepasse@localhost:5432/microbesoins
+JWT_SECRET=une-cle-secrete-solide
+JWT_EXPIRES_IN=24h
+CORS_ORIGIN=http://localhost:4200
+```
 1. `backend/src/db/mise-a-jour-schema.sql` — obligatoire pour une base existante : met à jour le schéma et initialise les catégories.
 2. `backend/src/db/ajout-architecture-paiement.sql` — crée le stockage des intentions de paiement ; aucun prestataire de paiement réel n'est activé.
-3. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
+3. `backend/src/db/ajout-profil-public.sql` — obligatoire pour la page « Profil public » : ajoute les champs publics des utilisateurs et les informations nécessaires aux services réalisés et aux avis reçus.
+4. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
 
-Le script `backend/src/db/ajout-mot-de-passe.sql` est conservé pour les anciennes installations, mais son traitement est déjà inclus dans `mise-a-jour-schema.sql`.
+## Lancer le projet
+
+### Activer la page « Profil public »
+
+**Avant d'utiliser la page, exécutez la migration [ajout-profil-public.sql](backend/src/db/ajout-profil-public.sql) sur la base PostgreSQL utilisée par l'API.** Il s'agit d'un script de mise à jour du schéma, pas d'une nouvelle base de données.
+
+1. Vérifiez la base indiquée par `DATABASE_URL` dans `backend/.env`.
+2. Dans pgAdmin, sélectionnez cette même base, puis ouvrez **Query Tool**.
+3. Ouvrez le fichier `backend/src/db/ajout-profil-public.sql` et exécutez tout son contenu avec **F5**. Les tables initiales et la migration `mise-a-jour-schema.sql` doivent déjà avoir été appliquées.
+4. Démarrez ou redémarrez le backend avec `npm run dev` depuis `backend`, puis le frontend avec `npm start` depuis `frontend`.
+5. Ouvrez `http://localhost:4200/profil/ID`, en remplaçant `ID` par l'identifiant d'un utilisateur existant dans la table `utilisateur`.
+
+Sans cette migration, l'API du profil peut renvoyer une erreur et la page ne peut pas charger les données. Le script peut être relancé sans supprimer les données existantes ; il n'ajoute pas de faux services ni d'avis. Un profil sans activité affiche les messages prévus à cet effet.
+
+Pour plus de détails, consultez [la documentation du profil public](backend/PROFIL-PUBLIC.md).
 
 Dans PostgreSQL ou dans pgAdmin, exécuter :
 
-```sql
-CREATE DATABASE "microBesoins";
+Dans un premier terminal :
+
+```powershell
+cd backend
+npm run dev
 ```
 
-### 2. Se connecter à la base de données
+Dans un second terminal :
 
-Dans pgAdmin, sélectionner la base de données créée, puis ouvrir l'outil **Query Tool**.
+```powershell
+cd frontend
+npm start
+```
 
-### 3. Créer les tables
+- Frontend : <http://localhost:4200>
+- API : <http://localhost:3000>
 
-Exécuter le contenu du fichier `MicroBesoins.sql` dans la base de données `microBesoins`.
+## Parcours d'une annonce
 
-Les tables doivent être créées dans le bon ordre afin de respecter les relations entre les clés primaires et les clés étrangères.
+1. Un demandeur publie son besoin.
+2. Un administrateur valide la publication.
+3. Les utilisateurs connectés peuvent envoyer une proposition.
+4. Le demandeur consulte les propositions reçues, puis en accepte une.
+5. Une fois le service effectué, le demandeur clique sur **Marquer le service terminé**.
+6. L'application met la réponse à l'état `TERMINE` et crée l'enregistrement de paiement correspondant.
 
-## Remarques
+## Messagerie
 
-- Les identifiants (`idUtilisateur`, `idGig`, etc.) sont générés automatiquement grâce à `GENERATED ALWAYS AS IDENTITY`.
-- Les adresses e-mail des utilisateurs doivent être uniques.
-- Les champs obligatoires sont définis avec `NOT NULL`.
-- Les mots de passe doivent être stockés sous forme de hachage sécurisé dans l'application, et non en texte brut.
-- Les statuts et les rôles sont actuellement représentés par des champs `VARCHAR`.
+Une conversation est toujours rattachée à un besoin et relie exactement deux utilisateurs. Elle est créée automatiquement après l'envoi d'une proposition, ou lorsqu'un utilisateur sélectionne **Contacter l'auteur**. Lors du premier clic sur ce bouton, l'application envoie automatiquement le message d'introduction « Bonjour, je vous contacte au sujet de … ». Une même paire d'utilisateurs ne peut avoir qu'une seule conversation pour le même besoin.
 
-## Projet
+Après avoir exécuté `backend/src/db/ajout-messagerie.sql`, rendez-vous sur **Messages**. Une conversation peut être vide : le premier message est envoyé depuis le champ situé en bas de l'écran.
+
+Le drapeau d'une conversation ouvre une modale permettant de signaler un contenu. Le motif est conservé dans `signalement_message` pour examen par l'administrateur.
+
+Les disponibilités saisies dans une proposition sont conservées avec le contenu de la réponse afin de rester compatibles avec le schéma partagé de la base de données.
+
+## Documentation complémentaire
+
+La documentation détaillée du serveur, des variables d'environnement, des migrations et des routes API est disponible dans [backend/README.md](backend/README.md).

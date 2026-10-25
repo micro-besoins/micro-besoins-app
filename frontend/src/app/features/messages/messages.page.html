@@ -1,0 +1,59 @@
+<header class="topbar">
+  <a routerLink="/" class="brand"><span class="logo">m</span><span>Micro-Besoins</span></a>
+  <nav aria-label="Navigation principale">
+    <a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions">Mes propositions</a><a routerLink="/messages" class="active">Messages</a>
+  </nav>
+  <div class="actions">
+    <span class="notification"><ng-icon name="lucideBell" /><b>1</b></span>
+    <a routerLink="/publier-un-besoin" class="publish"><ng-icon name="lucidePlus" />Publier un besoin</a>
+    <div class="profile"><button type="button" class="avatar" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()">{{ initialsUser() }}</button><strong>{{ user()?.prenom }}</strong>@if(profileOpen()) { <div class="profile-menu"><button type="button" (click)="logout()">Se déconnecter</button></div> }</div>
+  </div>
+</header>
+
+<main>
+  <p class="eyebrow">COMMUNICATION</p>
+  <h1>Messages</h1>
+
+  <section class="messaging-shell" aria-label="Messagerie">
+    <aside class="conversation-list">
+      <header><h2>Conversations <span>{{ conversations().length }}</span></h2></header>
+      @if(loading()) { <p class="list-state">Chargement…</p> }
+      @else if(!conversations().length) { <div class="empty-list"><ng-icon name="lucideMessageCircle" /><strong>Aucune conversation</strong><p>Une conversation sera créée lorsque vous contactez l’auteur d’un besoin ou envoyez une proposition.</p></div> }
+      @else { @for(item of conversations(); track item.id) {
+        <button class="conversation-item" [class.selected]="item.id === selectedId()" type="button" (click)="selectConversation(item.id)">
+          <span class="avatar other-avatar">{{ initials(item.otherFirstName, item.otherLastName) }}</span>
+          <span class="conversation-copy"><strong>{{ fullName(item.otherFirstName, item.otherLastName) }}</strong><small>{{ item.title }}</small><em>{{ preview(item) }}</em></span>
+          <span class="conversation-meta">{{ time(item.lastMessageAt) }}@if(item.unreadCount) { <b>{{ item.unreadCount }}</b> }</span>
+        </button>
+      } }
+    </aside>
+
+    <section class="thread">
+      @if(selected(); as conversation) {
+        <header class="thread-header"><span class="avatar other-avatar">{{ initials(conversation.otherFirstName, conversation.otherLastName) }}</span><div><strong>{{ fullName(conversation.otherFirstName, conversation.otherLastName) }}</strong><small>{{ conversation.title }}</small></div><button type="button" class="flag" (click)="openReport()" aria-label="Signaler un contenu"><ng-icon name="lucideFlag" /></button></header>
+        <div class="thread-body">
+          @if(loadingMessages()) { <p class="thread-state">Chargement des messages…</p> }
+          @else if(!messages().length) { <div class="empty-thread"><ng-icon name="lucideMessageCircle" /><h2>Commencez la conversation</h2><p>Échangez directement avec {{ conversation.otherFirstName }} au sujet de « {{ conversation.title }} ».</p></div> }
+          @else { @for(message of messages(); track message.id) { <div class="message-row" [class.mine]="isMine(message)"><div class="bubble">{{ message.content }}</div><time>{{ day(message.sentAt) }}</time></div> } }
+        </div>
+        <form class="composer" (submit)="$event.preventDefault(); send()"><input [value]="draft()" (input)="draft.set($any($event.target).value)" maxlength="2000" placeholder="Écrivez votre message…" aria-label="Votre message"><button type="submit" [disabled]="sending() || !draft().trim()"><ng-icon name="lucideSend" />{{ sending() ? 'Envoi…' : 'Envoyer' }}</button></form>
+      } @else {
+        <div class="no-selection"><ng-icon name="lucideMessageCircle" /><h2>Sélectionnez une conversation</h2><p>Choisissez une conversation dans la liste pour afficher vos échanges.</p></div>
+      }
+    </section>
+  </section>
+  @if(error()) { <p class="page-error">{{ error() }}</p> }
+</main>
+
+@if(reportOpen()) {
+  <div class="report-backdrop" (click)="closeReport()">
+    <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
+      <header><h2 id="report-title">Signaler un contenu</h2><button type="button" (click)="closeReport()" aria-label="Fermer">×</button></header>
+      @if(selected(); as conversation) { <div class="report-subject">Message de {{ fullName(conversation.otherFirstName, conversation.otherLastName) }}</div> }
+      <label for="message-report-reason">Motif <b>*</b></label>
+      <textarea id="message-report-reason" maxlength="2000" [value]="reportReason()" (input)="reportReason.set($any($event.target).value)" placeholder="Expliquez brièvement le problème…"></textarea>
+      @if(reportError()) { <p class="report-error">{{ reportError() }}</p> }
+      <footer><button type="button" class="cancel-report" (click)="closeReport()">Annuler</button><button type="button" class="send-report" [disabled]="reporting()" (click)="submitReport()">{{ reporting() ? 'Envoi…' : 'Envoyer le signalement' }}</button></footer>
+    </section>
+  </div>
+}

@@ -1,19 +1,19 @@
 @let d = dossier();
 <div class="publication-layout">
   <article class="publication-card">
-    <div class="title-row"><p class="category">{{ d.category }}</p><span class="status" [class.completed]="d.status==='Terminé'" [class.pending]="d.status==='À valider'">{{ d.status }}</span></div>
+    <div class="title-row"><p class="category">{{ d.category }}</p><span class="status" [class.completed]="d.status==='Terminé'" [class.pending]="d.status==='À valider' || d.status==='EN_ATTENTE'" [class.refused]="d.status==='REFUSE' || d.status==='Refusé'">{{ d.status }}</span></div>
     <h1>{{ d.title }}</h1>
-    <div class="author"><span class="avatar">{{ initials(d.author) }}</span><div><span class="muted">Publié par</span><strong>{{ d.author }}</strong><small>{{ d.city }}@if (d.details; as details) { · Membre depuis {{ details.memberSince }} }</small></div></div>
+    <div class="author"><span class="avatar">{{ initials(d.author) }}</span><div><span class="muted">Publié par</span><strong>{{ d.author }}</strong><small>{{ d.city }}@if (d.details?.memberSince) { · Membre depuis {{ d.details.memberSince }} }</small></div></div>
     <dl class="facts">
       <div><span class="fact-icon" aria-hidden="true">⌖</span><div><dt>Lieu</dt><dd>{{ d.city }}</dd></div></div>
       <div><span class="fact-icon" aria-hidden="true">▱</span><div><dt>Budget indicatif</dt><dd>Rs {{ d.amount | number:'1.0-0' }}</dd></div></div>
-      <div><span class="fact-icon" aria-hidden="true">▦</span><div><dt>Date souhaitée</dt><dd>{{ d.details ? (d.details.desiredDate | date:'d MMMM yyyy') : 'À convenir' }}</dd></div></div>
+      <div><span class="fact-icon" aria-hidden="true">▦</span><div><dt>Date souhaitée</dt><dd>@if(d.details?.desiredDate; as desiredDate) { {{ desiredDate | date:'d MMMM yyyy' }} } @else { À convenir }</dd></div></div>
     </dl>
     <section class="description-section"><h2>Description du besoin</h2><p>{{ d.description }}</p>
       @if (selected(); as provider) {
         <div class="selected"><span class="check" aria-hidden="true">✓</span><div><small>Prestataire retenu</small><strong>{{ provider.name }}</strong><p>Montant convenu : <b>Rs {{ provider.amount | number:'1.0-0' }}</b></p></div><a class="contact-button" [href]="contact(provider.email)"><span aria-hidden="true">▢</span> Contacter</a></div>
       } @else {
-        <div class="moderation">@if (d.status==='À valider') { <button class="primary" (click)="approve.emit()">Accepter</button><button (click)="refuse.emit()">Refuser</button> }<a class="contact-button" [href]="contact(d.email)">Contacter l’auteur</a></div>
+        <div class="moderation">@if (d.status==='À valider') { <button class="primary" (click)="approve.emit()">Accepter</button><button (click)="refuse.emit()">Refuser</button> }@if(canContactAuthor()) { <button class="contact-button" type="button" (click)="contactAuthor()">Contacter l’auteur</button> }</div>
       }
     </section>
     <section class="proposals-section"><h2>Propositions reçues <span class="count">{{ d.details?.proposals?.length ?? 0 }}</span></h2>
@@ -30,8 +30,20 @@
   <aside class="payment-card" aria-label="Suivi des paiements">
     <button class="report-button" (click)="report.emit()"><span aria-hidden="true">⚑</span> Signaler l’annonce</button>
     <h2>Suivi des paiements</h2>
-    @for (payment of d.details?.payments ?? []; track payment.label) { <div class="payment"><p>{{ payment.label }}</p><strong>{{ payment.status }} · Rs {{ payment.amount | number:'1.0-0' }} · {{ payment.date | date:'d MMMM yyyy' }}</strong></div> }
-    @empty { <p class="empty-text">Aucun paiement enregistré dans cette démonstration.</p> }
-    <p class="payment-hint">Les paiements sont fictifs. Le versement au prestataire reste à définir.</p>
+    <div class="payment">
+      <p>Frais de publication</p>
+      @if (d.details?.publicationPayment; as payment) {
+        <strong>{{ paymentStatus(payment.status, 'publication') }} · Rs {{ payment.amount | number:'1.0-0' }}@if (payment.date) { · {{ payment.date | date:'d MMMM yyyy' }} }</strong>
+      } @else { <strong>Non enregistré</strong> }
+    </div>
+    <div class="payment">
+      <p>Paiement du service</p>
+      @if (d.details?.servicePayment; as payment) {
+        <strong>{{ paymentStatus(payment.status, 'service') }} · Rs {{ payment.amount | number:'1.0-0' }}@if (payment.date) { · {{ payment.date | date:'d MMMM yyyy' }} }</strong>
+      } @else if (d.details?.serviceAmount; as amount) {
+        <strong>En attente de confirmation · Rs {{ amount | number:'1.0-0' }}</strong>
+      } @else { <strong>Non exigible — besoin non terminé</strong> }
+    </div>
+    <p class="payment-hint">Le paiement du prestataire est enregistré après la confirmation de fin de service.</p>
   </aside>
 </div>

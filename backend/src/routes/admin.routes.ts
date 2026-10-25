@@ -15,6 +15,7 @@ router.get('/stats/paiements-echoues', stats.getFailedPaymentsCount);
 router.get('/stats/signalements-ouverts', stats.getOpenReportsCount);
 
 router.get('/publications', publications.list);
+router.get('/publications/:id', publications.detail);
 router.patch('/publications/:id/accepter', publications.accept);
 router.patch('/publications/:id/refuser', publications.refuse);
 
