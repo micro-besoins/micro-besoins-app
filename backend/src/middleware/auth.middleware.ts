@@ -29,3 +29,14 @@ export function requireRole(...roles: Role[]) {
     next();
   };
 }
+
+export function optionalAuthenticate(req: Request, _res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try {
+      const payload = jwt.verify(header.slice(7), env.jwtSecret) as unknown as AuthPayload;
+      req.user = { id: payload.id, role: payload.role };
+    } catch { /* token invalide : on continue en visiteur */ }
+  }
+  next();
+}

@@ -1,0 +1,247 @@
+<header class="topbar">
+  <a routerLink="/" class="brand">
+    <span class="logo">m</span>
+    <span>Micro-Besoins</span>
+  </a>
+  <nav aria-label="Navigation principale">
+    <a routerLink="/" class="active">Explorer</a>
+    <a routerLink="/mes-besoins">Mes besoins</a>
+    <a routerLink="/mes-propositions">Mes propositions</a>
+    <a routerLink="/messages">Messages</a>
+  </nav>
+  <div class="nav-actions">
+    <span class="notification"><ng-icon name="lucideBell" /><b>1</b></span>
+    <a routerLink="/publier-un-besoin" class="publish">
+      <ng-icon name="lucidePlus" />Publier un besoin
+    </a>
+    <div class="profile">
+      <button type="button" class="avatar user-avatar" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()" aria-label="Ouvrir le menu du profil">{{ initialsUser() }}</button>
+      <strong>{{ user()?.prenom }}</strong>
+      @if(profileOpen()) { <div class="profile-menu"><button type="button" (click)="logout()">Se déconnecter</button></div> }
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Retour direct à l'accueil : plus d'étape intermédiaire par la page détail -->
+  <a routerLink="/" class="back">
+    <ng-icon name="lucideArrowLeft" />Retour
+  </a>
+
+  @if(loading()) {
+    <p class="state">Chargement des propositions…</p>
+  } @else if(error()) {
+    <section class="state error">
+      <p>{{ error() }}</p>
+      <a routerLink="/">Retour à l’exploration</a>
+    </section>
+  } @else if(gig(); as item) {
+    <div class="layout">
+      <article class="card">
+        <div class="heading">
+          <p class="category">{{ item.category || 'Besoin' }}</p>
+          <span class="status" [class.pending]="item.status==='EN_ATTENTE'">
+            {{ status(item.status) }}
+          </span>
+        </div>
+
+        <h1>{{ item.title }}</h1>
+
+        <div class="author">
+          <span class="avatar">{{ initials(item) }}</span>
+          <div>
+            <small>Publié par</small>
+            <strong>{{ owner(item) }}</strong>
+            <span class="author-location">{{ item.location || 'Localité non renseignée' }}</span>
+          </div>
+        </div>
+
+        <dl class="facts">
+          <div>
+            <ng-icon name="lucideMapPin" />
+            <div>
+              <dt>Lieu</dt>
+              <dd>{{ item.location || 'Non renseigné' }}</dd>
+            </div>
+          </div>
+          <div>
+            <span class="rs">Rs</span>
+            <div>
+              <dt>Budget indicatif</dt>
+              <dd>Rs {{ budget(item.budget) }}</dd>
+            </div>
+          </div>
+          <div>
+            <ng-icon name="lucideCalendarDays" />
+            <div>
+              <dt>Date souhaitée</dt>
+              <dd>{{ date(item.requestedAt) }}</dd>
+            </div>
+          </div>
+        </dl>
+
+        <section class="description">
+          <h2>Description du besoin</h2>
+          <p>{{ item.description }}</p>
+        </section>
+
+        <!-- Prestataire retenu : visible dès qu'une proposition est acceptée -->
+        @if(retained(); as r) {
+          <section class="retained" aria-label="Prestataire retenu">
+            <span class="retained-icon"><ng-icon name="lucideCheck" /></span>
+            <div class="retained-info">
+              <small>Prestataire retenu</small>
+              <strong>{{ r.auteurPrenom }} {{ r.auteurNom }}</strong>
+              <span>Montant convenu : <b>Rs {{ budget(r.montant) }}</b></span>
+              @if(r.dateRdv) {
+                <span>Rendez-vous : <b>{{ dateTime(r.dateRdv) }}</b></span>
+              }
+            </div>
+            <button type="button" class="secondary-action" (click)="contacter(r.auteurId)">
+              <ng-icon name="lucideMessageCircle" />Contacter
+            </button>
+            @if(r.status === 'ACCEPTE') {
+              <button type="button" class="primary-action" [disabled]="completingService()" (click)="completeService(r.id)">
+                {{ completingService() ? 'Validation…' : 'Marquer le service terminé' }}
+              </button>
+            }
+          </section>
+        }
+
+        <section class="proposals">
+          <h2>Propositions reçues <span>{{ item.proposalCount }}</span></h2>
+
+          <div class="proposal-list">
+            @for (prop of proposals(); track prop.id) {
+              <article class="proposal-card" [attr.data-status]="prop.status">
+                <div class="proposal-head">
+                  <span class="avatar proposal-avatar">{{ initialsOf(prop) }}</span>
+                  <strong class="proposal-name">{{ prop.auteurPrenom }} {{ prop.auteurNom }}</strong>
+                  <div class="proposal-price">
+                    <strong>Rs {{ budget(prop.montant) }}</strong>
+                    <span class="proposal-status" [attr.data-status]="prop.status">{{ proposalStatus(prop.status) }}</span>
+                  </div>
+                </div>
+
+                <p class="proposal-message">{{ prop.message }}</p>
+
+                <div class="proposal-actions">
+                  <button type="button" class="secondary-action" (click)="contacter(prop.auteurId)">
+                    <ng-icon name="lucideMessageCircle" />Contacter
+                  </button>
+                  @if(prop.status === 'EN_ATTENTE') {
+                    <button type="button" class="primary-action" (click)="openAccept(prop.id)">
+                      Accepter cette proposition
+                    </button>
+                  }
+                </div>
+              </article>
+            } @empty {
+              <p class="empty-proposals">Aucune proposition reçue pour le moment.</p>
+            }
+          </div>
+        </section>
+      </article>
+
+      <aside class="action-card">
+        <button type="button" class="report-action owner-report" (click)="openReport()">
+          <ng-icon name="lucideFlag"/>Signaler l’annonce
+        </button>
+
+        <section class="payments">
+          <h2>Suivi des paiements</h2>
+          <div class="current-payment-output">
+            @if(publicationPayment(item); as payment) {
+              <div class="payment-row payment-publication">
+                <span>Frais de publication</span>
+                <strong>{{ paymentStatus(payment.status) }} · Rs {{ budget(payment.amount) }}{{ paymentDate(payment.paidAt) }}</strong>
+              </div>
+            } @else {
+              <div class="payment-row payment-publication">
+                <span>Frais de publication</span>
+                <strong>En attente de validation · Rs 75</strong>
+              </div>
+            }
+            <div class="payment-row payment-service">
+              <span>Paiement du service</span>
+              @if(servicePayment(item); as payment) {
+                <strong>{{ paymentStatus(payment.status) }} · Rs {{ budget(payment.amount) }}{{ paymentDate(payment.paidAt) }}</strong>
+              } @else {
+                <strong>{{ servicePaymentStatus() }}</strong>
+              }
+            </div>
+            <p class="payment-note">Le paiement du prestataire est enregistré après la confirmation de fin de service.</p>
+          </div>
+          <div class="legacy-payment-output">
+          @for(payment of item.payments; track $index) {
+            <div class="payment-row">
+              <span>Frais de publication</span>
+              <strong>
+                {{ payment.status === 'REUSSI' ? 'Payé' : payment.status === 'ECHOUE' ? 'Échoué' : 'En attente' }}
+                · Rs {{ budget(payment.amount) }}
+              </strong>
+              @if(payment.paidAt) {
+                <small>{{ date(payment.paidAt) }}</small>
+              }
+            </div>
+          } @empty {
+            <p>Aucun paiement enregistré pour cette annonce.</p>
+          }
+          <p class="payment-note">Les frais de publication ne sont débités qu’après validation de l’annonce.</p>
+          </div>
+        </section>
+
+        @if(actionMessage()) {
+          <p class="action-message">{{ actionMessage() }}</p>
+        }
+      </aside>
+    </div>
+  }
+</main>
+
+@if(acceptOpen()) {
+  <div class="modal-backdrop" (click)="closeAccept()">
+    <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="accept-title" (click)="$event.stopPropagation()">
+      <h2 id="accept-title">Accepter la proposition</h2>
+      <p>Confirmez-vous l'acceptation de cette proposition ? Les autres seront automatiquement refusées. Vous pouvez proposer une date et une heure pour l'intervention.</p>
+
+      <label for="rdv-date">Date et heure convenues (optionnel)</label>
+      <input type="datetime-local" id="rdv-date" [value]="acceptDate()" (input)="acceptDate.set($any($event.target).value)">
+
+      <div class="modal-actions">
+        <button type="button" (click)="closeAccept()">Annuler</button>
+        <button type="button" class="primary-action" (click)="confirmAccept()">
+          Confirmer l'acceptation
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if(reportOpen()) {
+  <div class="modal-backdrop" (click)="closeReport()">
+    <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
+      <h2 id="report-title">Signaler l’annonce</h2>
+      <p>Expliquez le motif de votre signalement. Il sera examiné par un administrateur.</p>
+      <label for="report-reason">Motif du signalement</label>
+      <textarea
+        id="report-reason"
+        maxlength="2000"
+        [value]="reportReason()"
+        (input)="reportReason.set($any($event.target).value)"
+        placeholder="Décrivez le problème rencontré…">
+      </textarea>
+
+      @if(reportError()) {
+        <p class="report-error">{{ reportError() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" (click)="closeReport()">Annuler</button>
+        <button type="button" class="primary-action" [disabled]="reporting()" (click)="submitReport()">
+          {{ reporting() ? 'Envoi…' : 'Envoyer le signalement' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

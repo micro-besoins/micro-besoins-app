@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS payment_intent (
   idGig INT NOT NULL REFERENCES gig(idGig) ON DELETE CASCADE,
   idUtilisateur INT NOT NULL REFERENCES utilisateur(idUtilisateur) ON DELETE CASCADE,
   provider VARCHAR(20) NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  status VARCHAR(20) NOT NULL DEFAULT 'EN_ATTENTE',
   amount DECIMAL(10,2) NOT NULL,
   currency VARCHAR(3) NOT NULL DEFAULT 'MUR',
   externalReference VARCHAR(255),

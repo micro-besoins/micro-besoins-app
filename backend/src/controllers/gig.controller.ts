@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions } from '../services/gig.service';
+import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions, reportGig } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
+import { accepterProposition as accepterPropositionService, terminerProposition as terminerPropositionService } from '../services/gig.service';
+import { createProposition } from '../services/gig.service';
 import { findGigProposals } from '../services/profile.service';
 
 const queryValue = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -47,6 +49,67 @@ export async function getGig(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function createGigReport(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = Number(req.params.id);
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ code: 'INVALID_PARAMETER', message: 'Identifiant de besoin invalide.' });
+      return;
+    }
+    if (reason.length < 5 || reason.length > 2000) {
+      res.status(400).json({ code: 'INVALID_REPORT', message: 'Le motif doit contenir entre 5 et 2 000 caractères.' });
+      return;
+    }
+    const report = await reportGig(id, req.user!.id, reason);
+    if (!report) {
+      res.status(404).json({ code: 'NOT_FOUND', message: 'Cette annonce ne peut pas être signalée.' });
+      return;
+    }
+    res.status(201).json({ report });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function accepterProposition(req: Request, res: Response, next: NextFunction) {
+  try {
+    const idReponse = Number(req.params.id);
+    const ownerId = req.user!.id;
+    const { dateRdv } = req.body;
+    if (isNaN(idReponse)) {
+      throw new AppError(400, 'ID de proposition invalide.');
+    }
+    const result = await accepterPropositionService(idReponse, ownerId, dateRdv || null);
+    res.json({ message: 'Proposition acceptée avec succès.', data: result });
+  } catch (error: any) {
+  if (error.message === "Proposition introuvable." || error.message === "Vous n'êtes pas le propriétaire de cette annonce.") {
+    next(new AppError(403, error.message));
+  } else if (error.message === 'Cette proposition a déjà été traitée.') {
+    next(new AppError(409, error.message));
+  } else {
+    next(error);
+  }
+}
+}
+
+export async function terminerProposition(req: Request, res: Response, next: NextFunction) {
+  try {
+    const idReponse = Number(req.params.id);
+    if (!Number.isInteger(idReponse) || idReponse <= 0) throw new AppError(400, 'ID de proposition invalide.');
+    const result = await terminerPropositionService(idReponse, req.user!.id);
+    res.json({ message: 'Service marqué comme terminé et paiement enregistré.', data: result });
+  } catch (error: any) {
+    if (error.message === 'Proposition introuvable.' || error.message === 'Vous n’êtes pas le propriétaire de cette annonce.') {
+      next(new AppError(403, error.message));
+    } else if (error.message === 'Seule une proposition acceptée peut être terminée.') {
+      next(new AppError(409, error.message));
+    } else {
+      next(error);
+    }
+  }
+}
+
 export async function publishGig(req: Request, res: Response, next: NextFunction) {
   try {
     const { title, description, category, location, budget, requestedAt } = req.body ?? {};
@@ -69,6 +132,23 @@ export async function publishGig(req: Request, res: Response, next: NextFunction
       budget: numericBudget, requestedAt: requestedDate.toISOString(), ownerId: req.user!.id,
     });
     res.status(201).json({ gig });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createPropositionHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const gigId = Number(req.params.id);
+    const { message, montant } = req.body;
+    const userId = req.user!.id;
+
+    if (!message || !montant || montant <= 0) {
+      throw new AppError(400, 'Message et montant valides requis.');
+    }
+
+    const proposition = await createProposition(gigId, userId, message, montant);
+    res.status(201).json({ proposition });
   } catch (error) {
     next(error);
   }
