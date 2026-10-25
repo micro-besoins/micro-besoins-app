@@ -5,6 +5,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, LOCALE_ID, 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { HeaderComponent } from '../../shared/layout/header/header.component';
 
 interface Proposal {
   id: number; gigId: number; title: string; category: string | null;
@@ -22,7 +23,7 @@ registerLocaleData(localeFr);
 
 @Component({
   selector: 'app-proposals-page', standalone: true,
-  imports: [RouterLink, DatePipe, DecimalPipe],
+  imports: [RouterLink, DatePipe, DecimalPipe, HeaderComponent],
   providers: [{ provide: LOCALE_ID, useValue: 'fr' }],
   templateUrl: './proposals.page.html', styleUrl: './proposals.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

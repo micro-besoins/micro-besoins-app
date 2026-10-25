@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { categoryExists, createGig, findGigs, findGigById, getGigFilterOptions, reportGig } from '../services/gig.service';
 import { AppError } from '../utils/AppError';
 import { accepterProposition as accepterPropositionService, terminerProposition as terminerPropositionService } from '../services/gig.service';
-import { createProposition } from '../services/gig.service';
+import { createProposition, findGigsByOwner } from '../services/gig.service';
 import { getOrCreateConversation } from '../services/conversation.service';
 import { findGigProposals } from '../services/profile.service';
 
@@ -68,6 +68,14 @@ export async function createGigReport(req: Request, res: Response, next: NextFun
       return;
     }
     res.status(201).json({ report });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listMyGigs(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json({ gigs: await findGigsByOwner(req.user!.id) });
   } catch (error) {
     next(error);
   }
