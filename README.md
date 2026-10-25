@@ -48,9 +48,24 @@ Après avoir créé la base et les tables initiales, exécutez les scripts dans 
 
 1. `backend/src/db/mise-a-jour-schema.sql` — obligatoire pour une base existante : met à jour le schéma et initialise les catégories.
 2. `backend/src/db/ajout-architecture-paiement.sql` — crée le stockage des intentions de paiement ; aucun prestataire de paiement réel n'est activé.
-3. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
+3. `backend/src/db/ajout-profil-public.sql` — obligatoire pour la page « Profil public » : ajoute les champs publics des utilisateurs et les informations nécessaires aux services réalisés et aux avis reçus.
+4. `backend/src/db/jeu-de-donnees-demo.sql` — facultatif : ajoute des annonces de départ pour tester l'accueil, la recherche et les filtres.
 
 Le script `backend/src/db/ajout-mot-de-passe.sql` est conservé pour les anciennes installations, mais son traitement est déjà inclus dans `mise-a-jour-schema.sql`.
+
+### Activer la page « Profil public »
+
+**Avant d'utiliser la page, exécutez la migration [ajout-profil-public.sql](backend/src/db/ajout-profil-public.sql) sur la base PostgreSQL utilisée par l'API.** Il s'agit d'un script de mise à jour du schéma, pas d'une nouvelle base de données.
+
+1. Vérifiez la base indiquée par `DATABASE_URL` dans `backend/.env`.
+2. Dans pgAdmin, sélectionnez cette même base, puis ouvrez **Query Tool**.
+3. Ouvrez le fichier `backend/src/db/ajout-profil-public.sql` et exécutez tout son contenu avec **F5**. Les tables initiales et la migration `mise-a-jour-schema.sql` doivent déjà avoir été appliquées.
+4. Démarrez ou redémarrez le backend avec `npm run dev` depuis `backend`, puis le frontend avec `npm start` depuis `frontend`.
+5. Ouvrez `http://localhost:4200/profil/ID`, en remplaçant `ID` par l'identifiant d'un utilisateur existant dans la table `utilisateur`.
+
+Sans cette migration, l'API du profil peut renvoyer une erreur et la page ne peut pas charger les données. Le script peut être relancé sans supprimer les données existantes ; il n'ajoute pas de faux services ni d'avis. Un profil sans activité affiche les messages prévus à cet effet.
+
+Pour plus de détails, consultez [la documentation du profil public](backend/PROFIL-PUBLIC.md).
 
 Dans PostgreSQL ou dans pgAdmin, exécuter :
 
