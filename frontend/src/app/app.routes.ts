@@ -4,9 +4,7 @@ import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
   { path: 'profil/:id', title: 'Profil public · Micro-Besoins', loadComponent: () => import('./features/profile/public-profile.page').then((m) => m.PublicProfilePage) },
-  { path: 'besoins/:id', title: 'Détail du besoin', loadComponent: () => import('./features/profile/profile-context.page').then((m) => m.ProfileContextPage) },
   { path: '', title: 'Micro-Besoins', loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage) },
-  { path: 'profil', canActivate: [authGuard], title: 'Profil', loadComponent: () => import('./features/profile/profile-context.page').then((m) => m.ProfileContextPage) },
   { path: 'publier-un-besoin', canActivate: [authGuard], title: 'Publier un besoin', loadComponent: () => import('./features/gigs/publish/publish-gig.page').then((m) => m.PublishGigPage) },
   { path: 'besoins/:id', canActivate: [authGuard], title: 'Détail du besoin', loadComponent: () => import('./features/gigs/detail/gig-detail.page').then((m) => m.GigDetailPage) },
   { path: 'besoins/:id/propositions', canActivate: [authGuard], title: 'Propositions reçues', loadComponent: () => import('./features/gigs/proposals/proposals.page').then((m) => m.ProposalsPage) },
