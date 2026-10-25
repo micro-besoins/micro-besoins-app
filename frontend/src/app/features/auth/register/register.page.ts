@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService, RegisterPayload } from '../auth.service';
 import { matchesField } from '../validators/matches-field.validator';
@@ -17,9 +17,16 @@ import { FormFieldComponent } from '../../../shared/ui/form-field/form-field.com
   templateUrl: './register.page.html',
   styleUrl: './register.page.css',
 })
-export class RegisterPage {
+export class RegisterPage implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
+  private router = inject(Router);
+
+  ngOnInit() {
+      if (this.auth.token()) {
+        this.router.navigate(['/']);
+    }
+  }
 
   protected readonly submitting = signal(false);
   protected readonly successMessage = signal('');
