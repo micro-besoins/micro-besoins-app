@@ -5,9 +5,12 @@ import { errorHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import gigRoutes from './routes/gig.routes';
 import paymentRoutes from './routes/payment.routes';
+import proposalsRoutes from './routes/proposals.routes';
 import { notFound } from './middleware/not-found';
 import routes from './routes';
-// import 'express-async-errors';
+import profileRoutes from './routes/profile.routes';
+import { authenticate } from './middleware/auth.middleware';
+import { findMyProposals } from './services/profile.service';
 
 const app = express();
 
@@ -17,6 +20,12 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/gigs', gigRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/users', profileRoutes);
+app.get('/api/proposals/mine', authenticate, async (req, res, next) => {
+  try { res.json({ proposals: await findMyProposals(req.user!.id) }); }
+  catch (error) { next(error); }
+});
+app.use('/api/proposals', proposalsRoutes);
 
 app.use(errorHandler);
 
