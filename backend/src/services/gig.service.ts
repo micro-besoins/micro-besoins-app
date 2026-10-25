@@ -131,12 +131,12 @@ export async function findGigById(id: number, viewerId: number | null) {
   const gig = rows[0];
   if (!gig) return null;
  
-  const isOwner = viewerId !== null && gig.ownerId === viewerId;
+  const isOwner = viewerId !== null && Number(gig.ownerId) === Number(viewerId);
   if (gig.status !== GIG_STATUS.VALIDATED && !isOwner) return null;
  
   const payments = isOwner
-    ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null }>(
-      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt"
+    ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null; responseId: number | null }>(
+      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt", idreponse AS "responseId"
          FROM paiement
         WHERE idgig = $1
         ORDER BY idpaiement DESC`,
@@ -144,7 +144,27 @@ export async function findGigById(id: number, viewerId: number | null) {
     )).rows
     : [];
 
-  return { ...gig, isOwner, payments };
+  let proposals: any[] = [];
+  if (isOwner) {
+    const { rows: props } = await pool.query(
+      `SELECT r.idreponse AS id,
+              r.contenu AS message,
+              r.prixpropose AS montant,
+              r.statusreponse AS status,
+              r.date_rendez_vous AS "dateRdv",
+              u.idutilisateur AS "auteurId",
+              u.prenom AS "auteurPrenom",
+              u.nom AS "auteurNom"
+        FROM reponse r
+        JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
+        WHERE r.idgig = $1
+        ORDER BY r.datereponse DESC`,
+      [id]
+    );
+    proposals = props;
+  }
+
+  return { ...gig, isOwner, payments, proposals };
 }
 
 export async function reportGig(id: number, reporterId: number, reason: string) {
@@ -186,4 +206,95 @@ export async function createGig(input: CreateGigInput) {
   } finally {
     client.release();
   }
+}
+
+export async function accepterProposition(idReponse: number, ownerId: number, dateRdv: string | null) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `SELECT r.idgig, g.idutilisateur AS "ownerId"
+        FROM reponse r JOIN gig g ON g.idgig = r.idgig
+        WHERE r.idreponse = $1`,
+      [idReponse]
+    );
+
+    const reponse = rows[0];
+    if (!reponse) throw new Error("Proposition introuvable.");
+    if (Number(reponse.ownerId) !== Number(ownerId)) throw new Error("Vous n'êtes pas le propriétaire de cette annonce.");
+    
+    const accepted = await client.query(
+      `UPDATE reponse SET statusreponse = 'ACCEPTE', date_rendez_vous = $1
+        WHERE idreponse = $2 AND statusreponse = 'EN_ATTENTE'`,
+      [dateRdv, idReponse]
+    );
+    if (accepted.rowCount === 0) throw new Error('Cette proposition a déjà été traitée.');
+    
+    await client.query(
+      `UPDATE reponse SET statusreponse = 'REFUSE'
+        WHERE idgig = $1 AND idreponse != $2 AND statusreponse = 'EN_ATTENTE'`,
+      [reponse.idgig, idReponse]
+    );
+
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function terminerProposition(idReponse: number, ownerId: number) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ idgig: number; montant: string; ownerId: number; providerId: number }>(
+      `SELECT r.idgig, r.prixpropose AS montant, g.idutilisateur AS "ownerId", r.idutilisateur AS "providerId"
+         FROM reponse r
+         JOIN gig g ON g.idgig = r.idgig
+        WHERE r.idreponse = $1
+        FOR UPDATE`,
+      [idReponse],
+    );
+    const response = rows[0];
+    if (!response) throw new Error('Proposition introuvable.');
+    if (Number(response.ownerId) !== Number(ownerId)) throw new Error('Vous n’êtes pas le propriétaire de cette annonce.');
+
+    const completed = await client.query(
+      `UPDATE reponse
+          SET statusreponse = 'TERMINE'
+        WHERE idreponse = $1 AND statusreponse = 'ACCEPTE'`,
+      [idReponse],
+    );
+    if (completed.rowCount === 0) throw new Error('Seule une proposition acceptée peut être terminée.');
+
+    await client.query(
+      `INSERT INTO paiement (montant, methode, datepaiement, statuspaiement, idutilisateur, idreponse, idgig)
+       SELECT r.prixpropose, 'plateforme', NOW(), 'REUSSI', r.idutilisateur, r.idreponse, r.idgig
+         FROM reponse r
+        WHERE r.idreponse = $1
+          AND NOT EXISTS (SELECT 1 FROM paiement p WHERE p.idreponse = r.idreponse)`,
+      [idReponse],
+    );
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createProposition(gigId: number, userId: number, message: string, montant: number) {
+  const { rows } = await pool.query(
+    `INSERT INTO reponse (idgig, idutilisateur, contenu, prixpropose, statusreponse, datereponse)
+     VALUES ($1, $2, $3, $4, 'EN_ATTENTE', NOW())
+     RETURNING idreponse AS id`,
+    [gigId, userId, message, montant]
+  );
+  return rows[0];
 }

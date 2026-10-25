@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import { createGigReport, getGig, gigFilterOptions, listGigs, publishGig } from '../controllers/gig.controller';
-import { authenticate } from '../middleware/auth.middleware';
+import { createGigReport, getGig, gigFilterOptions, listGigs, createPropositionHandler, publishGig, accepterProposition, terminerProposition } from '../controllers/gig.controller';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.use(authenticate);
 router.get('/', listGigs);
 router.get('/filter-options', gigFilterOptions);
-router.post('/:id/signalements', createGigReport);
-router.get('/:id', getGig);
-router.post('/', publishGig);
+router.post('/:id/signalements', authenticate, createGigReport);
+router.get('/:id', optionalAuthenticate, getGig);
+router.post('/', authenticate, publishGig);
+router.patch('/reponses/:id/accepter', authenticate, accepterProposition); 
+router.patch('/reponses/:id/terminer', authenticate, terminerProposition);
+router.post('/:id/propositions', authenticate, createPropositionHandler);
 
 export default router;

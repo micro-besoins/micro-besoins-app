@@ -1,5 +1,6 @@
 <main>
   <a routerLink="/" class="brand"><span>m</span> Micro-Besoins</a>
+  <div class="profile"><button type="button" class="avatar" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()" aria-label="Ouvrir le menu du profil">{{ initialsUser() }}</button><strong>{{ user()?.prenom }}</strong>@if(profileOpen()) { <div class="profile-menu"><button type="button" (click)="logout()">Se déconnecter</button></div> }</div>
   <section>
     <p>MICRO-BESOINS</p>
     <h1>{{ title | async }}</h1>

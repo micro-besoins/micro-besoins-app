@@ -8,7 +8,7 @@
   @if (!id()) {
   <p class="eyebrow">Administration</p>
   <h1>{{ id() ? 'Consultation du dossier' : 'Tableau de bord' }}</h1>
-  <p class="intro">Modérez les publications et suivez les opérations fictives.</p>
+  <p class="intro">Modérez les publications et suivez les opérations de paiement.</p>
   }
   @if (notice()) { <p class="notice" role="status">{{ notice() }}</p> }
   @if (invalid()) {

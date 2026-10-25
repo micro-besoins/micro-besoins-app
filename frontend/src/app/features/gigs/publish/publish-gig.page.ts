@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService, RegisteredUser } from '../../auth/auth.service';
 
 interface FilterOptions { categories: string[]; }
 
@@ -12,7 +12,7 @@ interface FilterOptions { categories: string[]; }
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './publish-gig.page.html',
-  styleUrl: './publish-gig.page.css',
+  styleUrls: ['./publish-gig.page.css', '../session-actions.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublishGigPage {
@@ -20,6 +20,8 @@ export class PublishGigPage {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly user = signal<RegisteredUser | null>(this.auth.currentUser());
+  protected readonly profileOpen = signal(false);
   protected readonly categories = signal<string[]>([]);
   protected readonly submitting = signal(false);
   protected readonly step = signal<1 | 2>(1);
@@ -73,6 +75,15 @@ export class PublishGigPage {
   }
 
   protected returnToForm(): void { this.step.set(1); }
+  protected logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/auth/login');
+  }
+  protected toggleProfile(): void { this.profileOpen.update((open) => !open); }
+  protected initialsUser(): string {
+    const user = this.user();
+    return `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}`.toUpperCase() || '?';
+  }
 
   protected invalid(name: keyof typeof this.form.controls): boolean {
     const control = this.form.controls[name];
