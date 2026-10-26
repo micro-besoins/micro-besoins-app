@@ -13,10 +13,10 @@
         <article class="proposal-card" [attr.aria-labelledby]="'proposal-' + proposal.id">
           <span class="avatar owner-avatar" aria-hidden="true">{{ initials(proposal.ownerFirstName, proposal.ownerLastName) }}</span>
           <div class="proposal-info">
-            <div class="category-status"><span class="category">{{ proposal.category || 'Besoin' }}</span><span class="badge" [attr.data-status]="proposal.status">{{ statusLabel(proposal.status) }}</span></div>
+            <div class="category-status"><span class="category">{{ proposal.category || 'Besoin' }}</span><span class="badge" [attr.data-status]="normalizedStatus(proposal.status)">{{ statusLabel(proposal.status) }}</span></div>
             <h2 [id]="'proposal-' + proposal.id">{{ proposal.title }}</h2>
             <p class="owner">Publié par {{ owner(proposal) }}</p>
-            <p class="sent-date">@if (proposal.sentAt) { Envoyée le <time [attr.datetime]="proposal.sentAt">{{ proposal.sentAt | date:'dd/MM/yyyy à HH:mm' }}</time> } @else { Date d’envoi non renseignée }</p>
+            <p class="availability">Disponibilités : {{ availability(proposal) }}</p>
           </div>
           <div class="rate"><span>Votre tarif</span><strong>@if (proposal.amount !== null) { Rs {{ proposal.amount | number:'1.0-2' }} } @else { Non renseigné }</strong></div>
           <div class="card-actions">
@@ -45,7 +45,7 @@
       @if (need(); as gig) {
         <p class="eyebrow">{{ gig.category || 'Besoin' }}</p><h3>{{ gig.title }}</h3><p class="need-description">{{ gig.description }}</p>
         <dl><div><dt>Publié par</dt><dd>{{ gig.ownerFirstName }} {{ gig.ownerLastName }}</dd></div><div><dt>Budget du besoin</dt><dd>Rs {{ gig.budget | number:'1.0-2' }}</dd></div><div><dt>Localité</dt><dd>{{ gig.location || 'Non renseignée' }}</dd></div><div><dt>Date souhaitée</dt><dd>{{ gig.requestedAt ? (gig.requestedAt | date:'dd/MM/yyyy') : 'Non renseignée' }}</dd></div><div><dt>Statut du besoin</dt><dd>{{ needStatus(gig.status) }}</dd></div></dl>
-        <section class="your-proposal"><h3>Votre proposition</h3><p class="need-description">{{ selected()?.content }}</p><span class="badge" [attr.data-status]="selected()?.status">{{ statusLabel(selected()?.status ?? null) }}</span></section>
+        <section class="your-proposal"><h3>Votre proposition</h3><p class="need-description">{{ selected()?.content }}</p><span class="badge" [attr.data-status]="normalizedStatus(selected()?.status)">{{ statusLabel(selected()?.status ?? null) }}</span></section>
       }
     } @else if (ownerProfile(); as profile) {
       <div class="profile-detail"><span class="avatar large">{{ initials(profile.firstName, profile.lastName) }}</span><h3>{{ profile.firstName }} {{ profile.lastName }}</h3><p class="muted">Membre de Micro-Besoins</p><p>{{ profile.publishedCount }} besoin{{ profile.publishedCount > 1 ? 's' : '' }} publié{{ profile.publishedCount > 1 ? 's' : '' }}</p></div>

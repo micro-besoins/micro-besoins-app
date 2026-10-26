@@ -5,7 +5,7 @@ import { AppError } from '../utils/AppError';
 export async function findMyProposals(userId: number) {
   const { rows } = await pool.query(
     `SELECT r.idreponse AS id, r.prixpropose::text AS amount,
-            r.datereponse AS "sentAt", r.statusreponse AS status, r.contenu AS content,
+            r.datereponse AS "sentAt", COALESCE(NULLIF(r.statusreponse, ''), 'EN_ATTENTE') AS status, r.contenu AS content,
             g.idgig AS "gigId", g.titre AS title, to_jsonb(g)->>'categorie' AS category,
             u.prenom AS "ownerFirstName", u.nom AS "ownerLastName"
      FROM reponse r

@@ -1,8 +1,4 @@
-<header class="topbar">
-  <a routerLink="/" class="brand"><span class="logo">m</span>Micro-Besoins</a>
-  <nav><a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions">Mes propositions</a><a routerLink="/messages">Messages</a></nav>
-  <div class="profile"><button type="button" class="avatar" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()" aria-label="Ouvrir le menu du profil">{{ initialsUser() }}</button><strong>{{ user()?.prenom }}</strong>@if(profileOpen()) { <div class="profile-menu"><button type="button" (click)="logout()">Se déconnecter</button></div> }</div>
-</header>
+<app-header />
 
 <main>
   <a routerLink="/" class="back">‹ {{ step() === 1 ? 'Annuler et revenir' : 'Modifier mon besoin' }}</a>

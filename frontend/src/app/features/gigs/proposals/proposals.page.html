@@ -1,26 +1,4 @@
-<header class="topbar">
-  <a routerLink="/" class="brand">
-    <span class="logo">m</span>
-    <span>Micro-Besoins</span>
-  </a>
-  <nav aria-label="Navigation principale">
-    <a routerLink="/" class="active">Explorer</a>
-    <a routerLink="/mes-besoins">Mes besoins</a>
-    <a routerLink="/mes-propositions">Mes propositions</a>
-    <a routerLink="/messages">Messages</a>
-  </nav>
-  <div class="nav-actions">
-    <span class="notification"><ng-icon name="lucideBell" /><b>1</b></span>
-    <a routerLink="/publier-un-besoin" class="publish">
-      <ng-icon name="lucidePlus" />Publier un besoin
-    </a>
-    <div class="profile">
-      <button type="button" class="avatar user-avatar" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()" aria-label="Ouvrir le menu du profil">{{ initialsUser() }}</button>
-      <strong>{{ user()?.prenom }}</strong>
-      @if(profileOpen()) { <div class="profile-menu"><button type="button" (click)="logout()">Se déconnecter</button></div> }
-    </div>
-  </div>
-</header>
+<app-header />
 
 <main>
   <!-- Retour direct à l'accueil : plus d'étape intermédiaire par la page détail -->

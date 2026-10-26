@@ -1,0 +1,36 @@
+<app-header />
+
+<main>
+  <section class="heading">
+    <p class="eyebrow">Votre activité</p>
+    <h1>Notifications</h1>
+    <p>Suivez les événements importants de vos besoins et propositions.</p>
+  </section>
+
+  @if (unreadCount() > 0) {
+    <div class="toolbar">
+      <button type="button" class="mark-all" (click)="markAll()">Tout marquer comme lu</button>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="state error" role="alert">{{ error() }}</p>
+  } @else if (loading() && !notifications().length) {
+    <p class="state" role="status">Chargement des notifications…</p>
+  } @else if (!notifications().length) {
+    <p class="state">Aucune notification pour le moment.</p>
+  } @else {
+    <section class="notification-list" aria-label="Liste des notifications">
+      @for (notification of notifications(); track notification.id) {
+        <button type="button" class="notification-item" [class.unread]="!notification.read" (click)="open(notification)">
+          <span class="bell-icon" aria-hidden="true"><ng-icon name="lucideBell" /></span>
+          <span class="content">
+            <strong>{{ label(notification) }}</strong>
+            <small>{{ notification.read ? 'Notification lue' : 'Nouvelle notification' }}</small>
+          </span>
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+      }
+    </section>
+  }
+</main>

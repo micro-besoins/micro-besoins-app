@@ -1,15 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBell } from '@ng-icons/lucide';
 import { AuthService, RegisteredUser } from '../../../features/auth/auth.service';
 import { isAdminUser } from '../../../features/auth/admin-role';
+import { NotificationBell } from '../../../features/notification/notification-bell';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, NgIcon],
-  providers: [provideIcons({ lucideBell })],
+  imports: [RouterLink, RouterLinkActive, NotificationBell],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })

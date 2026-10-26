@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowLeft, lucideBell, lucideCalendarDays, lucideFlag, lucideMapPin, lucideMessageCircle, lucidePlus } from '@ng-icons/lucide';
 import { AuthService, RegisteredUser } from '../../auth/auth.service';
+import { HeaderComponent } from '../../../shared/layout/header/header.component';
 
 interface Payment { 
     amount:string;
@@ -40,7 +41,7 @@ interface Proposition {
   status?: string;
 }
 
-@Component({selector:'app-gig-detail-page',standalone:true,imports:[RouterLink,NgIcon],providers:[provideIcons({lucideArrowLeft,lucideBell,lucideCalendarDays,lucideFlag,lucideMapPin,lucideMessageCircle,lucidePlus})],templateUrl:'./gig-detail.page.html',styleUrls:['./gig-detail.page.css','./proposal-modal.css','./owner-payment-summary.css','../session-actions.css'],changeDetection:ChangeDetectionStrategy.OnPush})
+@Component({selector:'app-gig-detail-page',standalone:true,imports:[RouterLink,NgIcon,HeaderComponent],providers:[provideIcons({lucideArrowLeft,lucideBell,lucideCalendarDays,lucideFlag,lucideMapPin,lucideMessageCircle,lucidePlus})],templateUrl:'./gig-detail.page.html',styleUrls:['./gig-detail.page.css','./proposal-modal.css','./owner-payment-summary.css','../session-actions.css'],changeDetection:ChangeDetectionStrategy.OnPush})
 export class GigDetailPage {
     private readonly http=inject(HttpClient);
     private readonly auth=inject(AuthService);

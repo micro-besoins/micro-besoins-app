@@ -25,7 +25,7 @@ registerLocaleData(localeFr);
   selector: 'app-proposals-page', standalone: true,
   imports: [RouterLink, DatePipe, DecimalPipe, HeaderComponent],
   providers: [{ provide: LOCALE_ID, useValue: 'fr' }],
-  templateUrl: './proposals.page.html', styleUrl: './proposals.page.css',
+  templateUrl: './proposals.page.html', styleUrls: ['./proposals.page.css', './proposals-polish.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProposalsPage {
@@ -127,7 +127,7 @@ export class ProposalsPage {
   protected closeDialog(): void { if (!this.saving()) this.dialog.nativeElement.close(); }
   protected cancelDialog(event: Event): void { if (this.saving()) event.preventDefault(); }
   protected canWithdraw(): boolean {
-    return this.proposals().some(p => p.id === this.selected()?.id && p.status === 'EN_ATTENTE');
+    return this.proposals().some(p => p.id === this.selected()?.id && this.isPending(p));
   }
   protected toggleProfile(): void { this.profileOpen.update(open => !open); this.notificationsOpen.set(false); }
   protected toggleNotifications(): void { this.notificationsOpen.update(open => !open); this.profileOpen.set(false); }
@@ -138,12 +138,23 @@ export class ProposalsPage {
   protected owner(proposal: Proposal): string {
     return [proposal.ownerFirstName, proposal.ownerLastName].filter(Boolean).join(' ') || 'Utilisateur indisponible';
   }
+  protected availability(proposal: Proposal): string {
+    const match = proposal.content.match(/Disponibilités\s*:\s*([^\n]+)/i);
+    return match?.[1]?.trim() || 'Non renseignées';
+  }
+  protected normalizedStatus(status: string | null | undefined): string {
+    return status?.trim().toUpperCase() || 'EN_ATTENTE';
+  }
+  protected isPending(proposal: Proposal): boolean {
+    return this.normalizedStatus(proposal.status) === 'EN_ATTENTE';
+  }
   protected statusLabel(status: string | null): string {
-    switch (status) {
+    switch (this.normalizedStatus(status)) {
       case 'EN_ATTENTE': return 'En attente';
       case 'ACCEPTEE': case 'ACCEPTE': return 'Acceptée';
       case 'REFUSEE': case 'REFUSE': return 'Refusée';
       case 'RETIREE': case 'RETIRE': return 'Retirée';
+      case 'TERMINEE': case 'TERMINE': return 'Terminée';
       default: return 'Statut non renseigné';
     }
   }

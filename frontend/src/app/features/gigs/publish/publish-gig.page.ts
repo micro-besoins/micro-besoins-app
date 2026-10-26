@@ -4,13 +4,14 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService, RegisteredUser } from '../../auth/auth.service';
+import { HeaderComponent } from '../../../shared/layout/header/header.component';
 
 interface FilterOptions { categories: string[]; }
 
 @Component({
   selector: 'app-publish-gig-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, HeaderComponent],
   templateUrl: './publish-gig.page.html',
   styleUrls: ['./publish-gig.page.css', '../session-actions.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

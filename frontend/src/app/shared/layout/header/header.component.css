@@ -161,15 +161,15 @@ nav a.active {
   padding: 12px 20px;
   text-align: left;
   font-size: 15px;
-  color: #0b2a5b;
+  color: #c93745;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .profile-menu button:hover {
-  background: #f4f7fc;
-  color: #1767df;
+  background: #fff1f1;
+  color: #a61b1b;
 }
 
 /* ==========================================================================
