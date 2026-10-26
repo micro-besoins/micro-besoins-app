@@ -1,6 +1,14 @@
 /* ==========================================================================
    BARRE DE NAVIGATION PRINCIPALE (.topbar)
    ========================================================================== */
+:host {
+  display: block;
+  width: 100%;
+  /* On force les couleurs et la police pour éviter les fuites de style */
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #08295d;
+}
+
 .topbar {
   height: 96px;
   display: flex;

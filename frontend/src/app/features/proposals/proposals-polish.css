@@ -1,37 +1,221 @@
-/* Cartes de propositions : lecture rapide, actions constantes et retours visuels discrets. */
-main{max-width:none;margin:0;padding:52px 76px 80px}
-.eyebrow{margin-bottom:20px}
-h1{font-size:54px;letter-spacing:-2.4px}
-.intro{margin:14px 0 37px;font-size:20px}
-.proposal-list{gap:18px}
-.proposal-card{display:grid;grid-template-columns:52px minmax(320px,1fr) auto;gap:18px;min-height:176px;padding:20px 25px;border-radius:16px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
-.proposal-card:hover{transform:translateY(-2px);border-color:#bdd2f3;box-shadow:0 17px 31px rgba(36,74,123,.12)}
-.owner-avatar{width:48px;height:48px;align-self:center;font-size:15px}
-.proposal-info{align-self:start;padding-top:4px}
-.category-status{gap:10px;margin-bottom:11px}
-.category{font-size:13px;letter-spacing:.55px}
-.badge{padding:7px 11px;font-size:12px}
-.proposal-info h2{margin:0 0 14px;font-size:23px;line-height:1.24}
-.owner{margin-bottom:5px;color:#0752bc;font-size:16px;font-weight:800}
-.availability{margin:0;color:#607896;font-size:14px;line-height:1.4}
-.proposal-controls{display:flex;align-items:center;justify-content:flex-end;align-self:center;gap:42px;min-width:0}
-.rate{margin:0;text-align:left;white-space:nowrap}
-.rate span{font-size:13px;margin-bottom:5px}
-.rate strong{font-size:25px}
-.card-actions{justify-content:flex-end;align-self:center;gap:10px;flex-wrap:nowrap!important;white-space:nowrap}
-.outline,.danger,.text-button{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 19px;font-size:16px;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}
-.outline:hover,.danger:hover,.text-button:hover{transform:translateY(-1px)}
-.outline:active,.danger:active,.text-button:active{transform:translateY(0)}
-.outline{box-shadow:0 4px 11px rgba(21,89,199,.06)}
-.danger{box-shadow:0 7px 14px rgba(196,61,76,.17)}
-.text-button{padding-inline:10px}
-
-/* Sur ordinateur, les trois actions restent sur une seule ligne comme sur la maquette. */
-@media (min-width:721px){
-  .proposal-card{grid-template-columns:52px minmax(0,1fr) auto!important;align-items:center}
-  .card-actions{display:flex!important;grid-column:auto!important;grid-row:auto!important;width:auto!important;align-items:center!important;justify-content:flex-end!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:24px!important;white-space:nowrap!important}
-  .card-actions .outline,.card-actions .text-button,.card-actions .danger{flex:0 0 auto!important}
+/* Layout principal */
+main {
+  max-width: 1660px;
+  margin: 0 auto;
+  padding: 52px 76px 80px;
 }
-@media(max-width:1250px){main{padding-inline:48px}.proposal-card{grid-template-columns:52px minmax(230px,1fr) auto;gap:16px}.proposal-controls{gap:24px}.card-actions{justify-content:flex-end}.rate{justify-self:end}}
-@media(max-width:720px){main{padding:42px 20px 54px}.proposal-card{grid-template-columns:48px minmax(0,1fr);padding:20px;gap:14px}.proposal-controls{grid-column:1/-1;flex-wrap:wrap;justify-content:stretch;gap:14px}.rate{text-align:left}.card-actions{justify-content:stretch;white-space:normal}.card-actions>*{flex:1}.text-button{flex:1}.proposal-info h2{font-size:21px}h1{font-size:40px}}
-@media(max-width:500px){main{padding-inline:18px}.card-actions{display:grid;grid-template-columns:1fr 1fr}.card-actions .outline{grid-column:1/-1}.proposal-card{padding:18px}.intro{font-size:17px}}
+
+h1 {
+  font-size: 54px;
+  letter-spacing: -2.4px;
+  color: #062961;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.intro {
+  margin: 14px 0 37px;
+  font-size: 20px;
+  color: #647794;
+}
+
+/* Liste des propositions */
+.proposal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Carte de proposition (Horizontale) */
+.proposal-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #d9e1ec;
+  border-radius: 16px;
+  padding: 24px 30px;
+  box-shadow: 0 4px 15px rgba(36, 74, 123, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 30px;
+}
+
+.proposal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(36, 74, 123, 0.08);
+  border-color: #bdd2f3;
+}
+
+/* Partie gauche (Avatar + Texte) */
+.card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex: 1;
+}
+
+.owner-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.proposal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.category-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.category {
+  color: #0756c7;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.badge[data-status="EN_ATTENTE"] { background: #fff4dd; color: #805000; }
+.badge[data-status="ACCEPTEE"], .badge[data-status="ACCEPTE"] { background: #e5f5ed; color: #176442; }
+.badge[data-status="REFUSEE"], .badge[data-status="REFUSE"] { background: #fcebed; color: #a4283c; }
+.badge[data-status="RETIREE"], .badge[data-status="RETIRE"] { background: #edf0f5; color: #56637a; }
+
+.proposal-info h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  color: #0a2755;
+  letter-spacing: -0.5px;
+}
+
+.owner {
+  margin: 0;
+  color: #0752bc;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.availability {
+  margin: 0;
+  color: #607896;
+  font-size: 14px;
+}
+
+/* Partie droite (Prix + Boutons) */
+.card-right {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  flex-shrink: 0;
+}
+
+.rate {
+  text-align: right;
+  min-width: 100px;
+}
+
+.rate span {
+  display: block;
+  font-size: 13px;
+  color: #71829f;
+  margin-bottom: 4px;
+}
+
+.rate strong {
+  font-size: 24px;
+  color: #082d66;
+  white-space: nowrap;
+}
+
+/* Boutons */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.outline, .text-button, .danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.outline {
+  border: 1px solid #c2d6f7;
+  background: #fff;
+  color: #0044b7;
+}
+.outline:hover { background: #eff5ff; border-color: #8fb5f3; }
+
+.text-button {
+  background: transparent;
+  color: #526580;
+}
+.text-button:hover { background: #f1f5fa; color: #0044b7; }
+
+.danger {
+  background: #c43d4c;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(196, 61, 76, 0.2);
+}
+.danger:hover { background: #a92b3b; }
+
+/* États (vide, erreur) */
+.state {
+  padding: 40px;
+  text-align: center;
+  color: #64748e;
+  background: #fff;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .proposal-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .card-right {
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #edf0f5;
+  }
+}
+
+@media (max-width: 768px) {
+  main { padding: 30px 16px; }
+  h1 { font-size: 34px; }
+  .card-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+  .rate { text-align: left; }
+  .card-actions { flex-direction: column; }
+  .card-actions button, .card-actions a { width: 100%; }
+}
