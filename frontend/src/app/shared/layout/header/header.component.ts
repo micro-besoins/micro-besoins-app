@@ -11,7 +11,7 @@ import { isAdminUser } from '../../../features/auth/admin-role';
   imports: [RouterLink, RouterLinkActive, NgIcon],
   providers: [provideIcons({ lucideBell })],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css' // N'oublie pas d'y copier le CSS du header
+  styleUrl: './header.component.css'
 })
 export class HeaderComponent {
   private readonly auth = inject(AuthService);
@@ -32,6 +32,16 @@ export class HeaderComponent {
     this.profileOpen.set(false);
     void this.router.navigateByUrl('/admin');
   }
+
+  protected goToProfile() {
+    this.profileOpen.set(false);
+    void this.router.navigateByUrl('/mon-profil');
+  }
+
+  protected changeProfile() {
+    this.profileOpen.set(false);
+    void this.router.navigate(['/mon-profil'], { queryParams: { edit: true } });
+  } 
 
   protected initials(firstName: string | null, lastName: string | null): string {
     return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase() || '?';

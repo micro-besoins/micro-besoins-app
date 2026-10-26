@@ -6,6 +6,7 @@ import { catchError, combineLatest, of, Subject, startWith, switchMap, tap } fro
 import { AuthService } from '../auth/auth.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMapPin } from '@ng-icons/lucide';
+import { HeaderComponent } from '../../shared/layout/header/header.component';
 
 interface Stats { completedCount: number; reviewCount: number; averageRating: number | null; }
 interface Review { id: number; rating: number; comment: string | null; createdAt: string | null; }
@@ -17,9 +18,12 @@ interface PublicProfile {
 }
 
 @Component({
-  selector: 'app-public-profile', standalone: true, imports: [RouterLink, NgIcon],
+  selector: 'app-public-profile', 
+  standalone: true, 
+  imports: [RouterLink, NgIcon, HeaderComponent],
   providers: [provideIcons({ lucideMapPin })],
-  templateUrl: './public-profile.page.html', styleUrl: './public-profile.page.css',
+  templateUrl: './public-profile.page.html', 
+  styleUrl: './public-profile.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicProfilePage {
