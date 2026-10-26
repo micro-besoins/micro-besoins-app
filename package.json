@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@angular/compiler": "^22.2.3"
+  }
+}

@@ -1,0 +1,67 @@
+<app-header />
+
+<main>
+  <section class="page-intro">
+    <p class="eyebrow">Votre activité</p>
+    <h1>Mes besoins</h1>
+    <p>Suivez vos publications, propositions reçues et paiements.</p>
+  </section>
+
+  <section class="results" aria-live="polite">
+    @if (loading()) {
+      <p class="state">Chargement de vos besoins…</p>
+    } @else if (error()) {
+      <div class="state error">
+        <p>{{ error() }}</p>
+        <button type="button" class="retry" (click)="load()">Réessayer</button>
+      </div>
+    } @else if (!gigs().length) {
+      <div class="state">
+        <p>Vous n’avez pas encore publié de besoin.</p>
+        <a class="publish" routerLink="/publier-un-besoin">＋ Publier un besoin</a>
+      </div>
+    } @else {
+      <div class="need-list">
+        @for (gig of gigs(); track gig.id) {
+          <article class="need-row">
+            
+            <div class="row-header">
+              <div class="category-tag">
+                <span class="category">{{ gig.category || 'Besoin' }}</span>
+                <span class="status" [class]="statusClass(gig.status)">{{ statusLabel(gig.status) }}</span>
+              </div>
+            </div>
+
+            <h2 class="row-title">
+              <span class="avatar">{{ initials() }}</span>
+              {{ gig.title }}
+            </h2>
+
+            <div class="row-meta">
+              <span><ng-icon name="lucideMapPin" /> {{ gig.location || 'Non renseignée' }}</span>
+              <span><ng-icon name="lucideCalendarDays" /> {{ formatDate(gig.publishedAt) }}</span>
+            </div>
+
+            @if (gig.status === 'VALIDE') {
+              <div class="row-footer">
+                @if (provider(gig); as name) {
+                  <p>Prestataire retenu : <strong>{{ name }}</strong> · Montant convenu : <strong>Rs {{ formatBudget(gig.agreedPrice) }}</strong></p>
+                } @else {
+                  <p>Aucun prestataire retenu pour le moment · {{ gig.proposalCount }} proposition{{ gig.proposalCount > 1 ? 's' : '' }} reçue{{ gig.proposalCount > 1 ? 's' : '' }}</p>
+                }
+              </div>
+            }
+
+            <div class="row-actions">
+              <button class="outline" (click)="openDetail(gig.id)">Consulter</button>
+              @if (gig.status === 'EN_ATTENTE') {
+                <button class="text-danger">Annuler</button>
+              }
+            </div>
+
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
