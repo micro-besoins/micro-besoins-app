@@ -18,9 +18,12 @@ interface PublicProfile {
 }
 
 @Component({
-  selector: 'app-public-profile', standalone: true, imports: [RouterLink, NgIcon, HeaderComponent],
+  selector: 'app-public-profile', 
+  standalone: true, 
+  imports: [RouterLink, NgIcon, HeaderComponent],
   providers: [provideIcons({ lucideMapPin })],
-  templateUrl: './public-profile.page.html', styleUrl: './public-profile.page.css',
+  templateUrl: './public-profile.page.html', 
+  styleUrl: './public-profile.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicProfilePage {

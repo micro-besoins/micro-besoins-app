@@ -23,6 +23,8 @@
       <strong class="user-name">{{ user()?.prenom }}</strong>
       @if (profileOpen()) {
         <div class="profile-menu">
+          <button type="button" (click)="goToProfile()">Mon profil</button>
+          <button type="button" (click)="changeProfile()">Modifier mon profil</button>
           @if (isAdmin) {
             <button type="button" (click)="goToAdmin()">Tableau de bord</button>
           }

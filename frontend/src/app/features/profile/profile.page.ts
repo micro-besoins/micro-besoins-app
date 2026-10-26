@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
@@ -21,6 +21,7 @@ export class ProfilePage {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly api = 'http://localhost:3000/api/users/me';
   @ViewChild('editDialog') private dialog?: ElementRef<HTMLDialogElement>;
   @ViewChild('profileForm') private form?: NgForm;
@@ -33,7 +34,14 @@ export class ProfilePage {
   protected readonly refreshVersion = signal(0);
   protected draft = { publicName: '', location: '', bio: '', nom: '', prenom: '', email: '' };
 
-  constructor() { this.load(); }
+  constructor() { 
+    this.load(); 
+    this.route.queryParams.subscribe(params => {
+      if (params['edit'] === 'true') {
+        setTimeout(() => this.edit(), 500); 
+      }
+    });
+  }
 
   protected load(): void {
     if (!this.auth.token()) { void this.router.navigateByUrl('/auth/login'); return; }
