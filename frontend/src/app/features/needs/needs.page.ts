@@ -22,6 +22,9 @@ interface MyGig {
   category: string | null;
   location: string | null;
   proposalCount: number;
+  providerFirstName: string | null;
+  providerLastName: string | null;
+  agreedPrice: string | null;
 }
 
 @Component({
@@ -88,6 +91,9 @@ export class MyNeedsPage {
   protected initials(): string {
     const user = this.user();
     return `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}`.toUpperCase() || '?';
+  }
+  protected provider(gig: MyGig): string | null {
+    return [gig.providerFirstName, gig.providerLastName].filter(Boolean).join(' ') || null;
   }
   protected formatDate(value: string | null): string {
     return value ? new Intl.DateTimeFormat('fr-MU', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value)) : 'À convenir';

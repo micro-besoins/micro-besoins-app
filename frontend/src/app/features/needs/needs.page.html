@@ -44,13 +44,16 @@
 
             @if (gig.status === 'VALIDE') {
               <div class="row-footer">
-                <p>Prestataire retenu : <strong>Kevin Ramdass</strong> · Montant convenu : <strong>Rs 850</strong></p>
+                @if (provider(gig); as name) {
+                  <p>Prestataire retenu : <strong>{{ name }}</strong> · Montant convenu : <strong>Rs {{ formatBudget(gig.agreedPrice) }}</strong></p>
+                } @else {
+                  <p>Aucun prestataire retenu pour le moment · {{ gig.proposalCount }} proposition{{ gig.proposalCount > 1 ? 's' : '' }} reçue{{ gig.proposalCount > 1 ? 's' : '' }}</p>
+                }
               </div>
             }
 
             <div class="row-actions">
               <button class="outline" (click)="openDetail(gig.id)">Consulter</button>
-              <!-- Le bouton Annuler n'apparaît que si le besoin est en attente -->
               @if (gig.status === 'EN_ATTENTE') {
                 <button class="text-danger">Annuler</button>
               }
