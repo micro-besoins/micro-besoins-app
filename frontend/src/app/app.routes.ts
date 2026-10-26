@@ -12,6 +12,7 @@ export const routes: Routes = [
   { path: 'mes-besoins', canActivate: [authGuard], title: 'Mes besoins', loadComponent: () => import('./features/needs/needs.page').then((m) => m.MyNeedsPage) },
   { path: 'mon-profil', canActivate: [authGuard], title: 'Mon profil · Micro-Besoins', loadComponent: () => import('./features/profile/public-profile.page').then((m) => m.PublicProfilePage) },
   { path: 'messages', canActivate: [authGuard], title: 'Messages', loadComponent: () => import('./features/messages/messages.page').then((m) => m.MessagesPage) },
+  { path: 'notifications', canActivate: [authGuard], title: 'Notifications', loadComponent: () => import('./features/notification/notification.page').then((m) => m.NotificationPage) },
   { path: 'mes-propositions', canActivate: [authGuard], title: 'Mes propositions', loadComponent: () => import('./features/proposals/proposals.page').then((m) => m.ProposalsPage) },
   { path: 'auth', loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES) },
   { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./features/auth/admin/admin.page').then((m) => m.AdminPage) },

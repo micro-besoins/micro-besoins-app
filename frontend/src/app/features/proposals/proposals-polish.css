@@ -1,0 +1,37 @@
+/* Cartes de propositions : lecture rapide, actions constantes et retours visuels discrets. */
+main{max-width:none;margin:0;padding:52px 76px 80px}
+.eyebrow{margin-bottom:20px}
+h1{font-size:54px;letter-spacing:-2.4px}
+.intro{margin:14px 0 37px;font-size:20px}
+.proposal-list{gap:18px}
+.proposal-card{display:grid;grid-template-columns:52px minmax(320px,1fr) auto;gap:18px;min-height:176px;padding:20px 25px;border-radius:16px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.proposal-card:hover{transform:translateY(-2px);border-color:#bdd2f3;box-shadow:0 17px 31px rgba(36,74,123,.12)}
+.owner-avatar{width:48px;height:48px;align-self:center;font-size:15px}
+.proposal-info{align-self:start;padding-top:4px}
+.category-status{gap:10px;margin-bottom:11px}
+.category{font-size:13px;letter-spacing:.55px}
+.badge{padding:7px 11px;font-size:12px}
+.proposal-info h2{margin:0 0 14px;font-size:23px;line-height:1.24}
+.owner{margin-bottom:5px;color:#0752bc;font-size:16px;font-weight:800}
+.availability{margin:0;color:#607896;font-size:14px;line-height:1.4}
+.proposal-controls{display:flex;align-items:center;justify-content:flex-end;align-self:center;gap:42px;min-width:0}
+.rate{margin:0;text-align:left;white-space:nowrap}
+.rate span{font-size:13px;margin-bottom:5px}
+.rate strong{font-size:25px}
+.card-actions{justify-content:flex-end;align-self:center;gap:10px;flex-wrap:nowrap!important;white-space:nowrap}
+.outline,.danger,.text-button{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 19px;font-size:16px;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}
+.outline:hover,.danger:hover,.text-button:hover{transform:translateY(-1px)}
+.outline:active,.danger:active,.text-button:active{transform:translateY(0)}
+.outline{box-shadow:0 4px 11px rgba(21,89,199,.06)}
+.danger{box-shadow:0 7px 14px rgba(196,61,76,.17)}
+.text-button{padding-inline:10px}
+
+/* Sur ordinateur, les trois actions restent sur une seule ligne comme sur la maquette. */
+@media (min-width:721px){
+  .proposal-card{grid-template-columns:52px minmax(0,1fr) auto!important;align-items:center}
+  .card-actions{display:flex!important;grid-column:auto!important;grid-row:auto!important;width:auto!important;align-items:center!important;justify-content:flex-end!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:24px!important;white-space:nowrap!important}
+  .card-actions .outline,.card-actions .text-button,.card-actions .danger{flex:0 0 auto!important}
+}
+@media(max-width:1250px){main{padding-inline:48px}.proposal-card{grid-template-columns:52px minmax(230px,1fr) auto;gap:16px}.proposal-controls{gap:24px}.card-actions{justify-content:flex-end}.rate{justify-self:end}}
+@media(max-width:720px){main{padding:42px 20px 54px}.proposal-card{grid-template-columns:48px minmax(0,1fr);padding:20px;gap:14px}.proposal-controls{grid-column:1/-1;flex-wrap:wrap;justify-content:stretch;gap:14px}.rate{text-align:left}.card-actions{justify-content:stretch;white-space:normal}.card-actions>*{flex:1}.text-button{flex:1}.proposal-info h2{font-size:21px}h1{font-size:40px}}
+@media(max-width:500px){main{padding-inline:18px}.card-actions{display:grid;grid-template-columns:1fr 1fr}.card-actions .outline{grid-column:1/-1}.proposal-card{padding:18px}.intro{font-size:17px}}

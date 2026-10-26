@@ -1,36 +1,5 @@
-<button class="bell" type="button" (click)="toggle()" [attr.aria-expanded]="open()" aria-haspopup="true"
+<button class="bell" type="button" (click)="openNotifications()"
   [attr.aria-label]="unreadCount() > 0 ? 'Notifications, ' + unreadCount() + ' non lues' : 'Notifications'">
   <ng-icon name="lucideBell" size="22" />
   @if (unreadCount() > 0) { <span class="badge" aria-hidden="true">{{ badge() }}</span> }
 </button>
-
-@if (open()) {
-  <section class="panel" aria-label="Notifications">
-    <header class="panel-head">
-      <h2>Notifications</h2>
-      @if (unreadCount() > 0) { <button type="button" class="link" (click)="markAll()">Tout marquer comme lu</button> }
-    </header>
-
-    @if (error()) {
-      <p class="state error" role="alert">{{ error() }}</p>
-    } @else if (loading() && !notifications().length) {
-      <p class="state" role="status">Chargement…</p>
-    } @else if (!notifications().length) {
-      <p class="state">Aucune notification pour le moment.</p>
-    } @else {
-      <ul>
-        @for (n of notifications(); track n.id) {
-          <li>
-            <button type="button" class="item" [class.unread]="!n.read" (click)="openNotification(n)">
-              <span class="dot" aria-hidden="true"></span>
-              <span class="text">
-                <strong>{{ sender(n) }}</strong> vous a envoyé un message@if (n.gigTitle) { à propos de <em>« {{ n.gigTitle }} »</em> }
-                <time class="time" [attr.datetime]="n.createdAt">{{ formatTime(n.createdAt) }}</time>
-              </span>
-            </button>
-          </li>
-        }
-      </ul>
-    }
-  </section>
-}

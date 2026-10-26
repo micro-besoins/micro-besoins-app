@@ -61,6 +61,8 @@ export class AdminPage {
     return stats.signalementsOuverts;
   }
   pending(d: Dossier): boolean { return d.status === this.sections.find(s => s.key === d.section)?.pending; }
+  statusIsPending(d: Dossier): boolean { return d.status === 'EN_ATTENTE' || (d.section === 'signalements' && d.status === 'OUVERT'); }
+  statusIsRefused(d: Dossier): boolean { return ['REFUSE', 'REFUSEE', 'Refusé', 'ECHOUE'].includes(d.status); }
   canAct(d: Dossier): boolean { return (d.section === 'publications' || d.section === 'signalements') && this.pending(d); }
   ask(item:Dossier, action:string): void { this.note.set(''); this.confirmation.set({item,action}); }
 

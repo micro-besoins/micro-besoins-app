@@ -38,6 +38,7 @@ h1 { margin:0; color:#062961; font-size:47px; font-weight:500; line-height:1.13;
 .badge[data-status="EN_ATTENTE"] { background:#fff4dd; color:#805000; }
 .badge[data-status="ACCEPTEE"],.badge[data-status="ACCEPTE"] { background:#e5f5ed; color:#176442; }
 .badge[data-status="REFUSEE"],.badge[data-status="REFUSE"] { background:#fcebed; color:#a4283c; }
+.badge[data-status="TERMINEE"],.badge[data-status="TERMINE"] { background:#e7eefb; color:#315b96; }
 .proposal-info h2 { margin:12px 0; color:#0a2755; font-size:23px; font-weight:500; line-height:1.27; letter-spacing:-.8px; overflow-wrap:anywhere; }
 .owner { margin:0 0 3px; font-weight:700; font-size:15px; }
 .sent-date { margin:0; color:#71829f; font-size:12px; line-height:1.6; }

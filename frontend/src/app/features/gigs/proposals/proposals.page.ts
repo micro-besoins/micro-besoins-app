@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowLeft, lucideBell, lucideCalendarDays, lucideCheck, lucideFlag, lucideMapPin, lucideMessageCircle, lucidePlus } from '@ng-icons/lucide';
 import { AuthService, RegisteredUser } from '../../auth/auth.service';
+import { HeaderComponent } from '../../../shared/layout/header/header.component';
 
 interface Payment {
   amount: string;
@@ -43,7 +44,7 @@ interface GigDetail {
 @Component({
   selector: 'app-proposals-page',
   standalone: true,
-  imports: [RouterLink, NgIcon],
+  imports: [RouterLink, NgIcon, HeaderComponent],
   providers: [provideIcons({ lucideArrowLeft, lucideBell, lucideCalendarDays, lucideCheck, lucideFlag, lucideMapPin, lucideMessageCircle, lucidePlus })],
   templateUrl: './proposals.page.html',
   styleUrls: ['./proposals.page.css', './proposal-payment-summary.css', '../session-actions.css'],

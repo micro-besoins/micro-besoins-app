@@ -8,3 +8,4 @@
 .profile-menu button:hover { background: #fff1f1; }
 
 main.consultation{padding-top:28px}.consultation>.back{color:#47617f;margin-bottom:32px}.consultation>.hint{margin-top:22px}
+:host main{padding-top:18px}

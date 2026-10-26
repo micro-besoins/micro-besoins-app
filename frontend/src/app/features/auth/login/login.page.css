@@ -40,3 +40,11 @@ form { gap: 21px; }
 
 .message { margin: 0 0 20px; padding: 12px 14px; border-radius: var(--radius); font-size: 15px; }
 .error { color: var(--danger); background: #fef3f2; }
+
+@media (max-width: 560px) {
+  h2 { font-size:32px; }
+  .sub { margin-bottom:28px; font-size:17px; line-height:25px; }
+  form { gap:17px; }
+  .fields { gap:18px; }
+  .switch { margin-top:22px; font-size:16px; line-height:24px; }
+}
