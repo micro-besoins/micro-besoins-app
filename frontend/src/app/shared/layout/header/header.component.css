@@ -1,0 +1,245 @@
+/* ==========================================================================
+   BARRE DE NAVIGATION PRINCIPALE (.topbar)
+   ========================================================================== */
+.topbar {
+  height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 0 50px;
+  background: #fff;
+  border-bottom: 1px solid #dfe6f1;
+  position: relative;
+  z-index: 50; /* Assure que le header reste au-dessus du contenu */
+}
+
+/* --- Logo et Marque --- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #0b2a5b;
+  font-size: 24px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: #1767df;
+  color: #fff;
+  font-size: 29px;
+  font-weight: 800;
+}
+
+/* --- Liens de navigation --- */
+nav {
+  align-self: stretch;
+  display: flex;
+  gap: 34px;
+}
+
+nav a {
+  display: flex;
+  align-items: center;
+  border-bottom: 3px solid transparent;
+  color: #687892;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* La classe .active est maintenant gérée automatiquement par routerLinkActive */
+nav a.active {
+  color: #1559c7;
+  border-color: #1767df;
+}
+
+/* --- Actions à droite (notif, bouton publier, profil) --- */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+}
+
+.notification {
+  position: relative;
+  color: #63728b;
+  font-size: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification b {
+  position: absolute;
+  top: -8px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #c93745;
+  color: #fff;
+  font-size: 10px;
+}
+
+.publish {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #1767df;
+  box-shadow: 0 9px 16px rgba(11, 87, 207, 0.15);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   MENU DU PROFIL (.profile)
+   ========================================================================== */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  position: relative; /* Indispensable pour placer le menu déroulant */
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  background: #eaf2ff;
+  color: #0756c7;
+  font-size: 17px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+}
+
+.user-name {
+  color: #0b2a5b;
+  font-weight: 600;
+}
+
+/* --- Menu déroulant du profil --- */
+.profile-menu {
+  position: absolute;
+  top: 120%; /* Juste en dessous de l'avatar */
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #dfe6f1;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  z-index: 100;
+}
+
+.profile-menu button {
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 15px;
+  color: #0b2a5b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.profile-menu button:hover {
+  background: #f4f7fc;
+  color: #1767df;
+}
+
+/* ==========================================================================
+   RESPONSIVE (Adaptation Mobile)
+   ========================================================================== */
+@media (max-width: 800px) {
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 15px 20px 0;
+    gap: 12px;
+  }
+  
+  .brand {
+    font-size: 20px;
+  }
+  
+  .actions {
+    gap: 12px;
+  }
+  
+  .profile strong, 
+  .notification {
+    display: none; /* On cache le nom et la cloche sur petit écran */
+  }
+  
+  .publish {
+    height: 46px;
+    font-size: 14px;
+    padding: 0 16px;
+  }
+
+  /* Le menu passe en dessous sur mobile */
+  nav {
+    order: 3;
+    width: 100%;
+    height: 45px;
+    overflow: auto;
+    gap: 24px;
+  }
+
+  nav a {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 540px) {
+  .topbar {
+    padding-inline: 15px;
+  }
+  
+  .brand {
+    font-size: 19px;
+  }
+  
+  .logo {
+    width: 40px;
+    height: 40px;
+    font-size: 25px;
+  }
+
+  nav {
+    margin-inline: -15px;
+    padding-inline: 15px;
+    width: calc(100% + 30px);
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  nav a {
+    font-size: 12px;
+  }
+}
