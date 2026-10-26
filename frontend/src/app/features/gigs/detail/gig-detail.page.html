@@ -73,14 +73,26 @@
                     <p><strong>{{ prop.auteurPrenom }} {{ prop.auteurNom }}</strong></p>
                     <p>{{ prop.message }}</p>
                     <p>Tarif proposé : {{ budget(prop.montant.toString()) }} Rs</p>
+                    @if (prop.status) {
+                      <p>Statut : {{ prop.status }}</p>
+                    }
                     
                     <div class="proposal-actions">
                       <button class="secondary-action" (click)="contacterAuteur(prop.auteurId)">
                         <ng-icon name="lucideMessageCircle"/> Contacter
                       </button>
-                      <button class="primary-action" (click)="openAccept(prop.id)">
-                        Accepter cette proposition
-                      </button>
+
+                      @if (prop.status === 'EN_ATTENTE') {
+                        <button class="primary-action" (click)="openAccept(prop.id)">
+                          Accepter cette proposition
+                        </button>
+                      }
+
+                      @if (prop.status === 'ACCEPTE') {
+                        <button class="primary-action" style="background: #078050;" (click)="terminerService(prop.id)">
+                          Marquer le service terminé
+                        </button>
+                      }
                     </div>
                   </div>
                 }

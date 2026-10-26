@@ -6,6 +6,7 @@ export const GIG_STATUS = {
   PENDING: 'EN_ATTENTE',
   VALIDATED: 'VALIDE',
   REFUSED: 'REFUSE',
+  TERMINE: 'TERMINE',
 } as const;
 
 export const PAYMENT_STATUS = {

@@ -37,7 +37,7 @@ interface Proposition {
   auteurNom: string;
   idUtilisateur: number;
   message: string;
-  montant: number;
+  montant: string;
   status?: string;
 }
 
@@ -77,8 +77,14 @@ export class GigDetailPage {
         if(!Number.isInteger(id)||id<=0){this.fail('Cette annonce est introuvable.');
             return;
         }
-        this.http.get<{gig:GigDetail}>(`http://localhost:3000/api/gigs/${id}`,
-            {headers:this.headers()}).subscribe({next:({gig})=>{this.gig.set(gig);this.loading.set(false);},error:(error:HttpErrorResponse)=>this.fail(error.status===404?'Cette annonce est introuvable ou n’est pas accessible.':'Impossible de charger cette annonce.')
+        this.http.get<{gig:GigDetail, proposals: Proposition[]}>(`http://localhost:3000/api/gigs/${id}`, {headers:this.headers()}).subscribe({
+            next: (res) => {
+                // On fusionne les propositions dans l'objet gig pour que le HTML puisse les lire via item.proposals
+                const gigWithProposals = { ...res.gig, proposals: res.proposals };
+                this.gig.set(gigWithProposals);
+                this.loading.set(false);
+            },
+            error: (error:HttpErrorResponse) => this.fail(error.status===404?'Cette annonce est introuvable ou n’est pas accessible.':'Impossible de charger cette annonce.')
         });
     }
 
@@ -223,6 +229,20 @@ export class GigDetailPage {
             this.submittingProposal.set(false);
             this.proposalError.set(err.error?.message || 'Erreur lors de l\'envoi.');
         }
+        });
+    }
+    protected terminerService(idReponse: number) {
+        if (!confirm('Voulez-vous vraiment marquer ce service comme terminé ? Cela clôturera le besoin.')) return;
+
+        this.http.patch(`http://localhost:3000/api/gigs/reponses/${idReponse}/terminer`, {}, { headers: this.headers() })
+        .subscribe({
+            next: () => {
+            this.notify('Le service a été marqué comme terminé !');
+            setTimeout(() => window.location.reload(), 1500);
+            },
+            error: (err: HttpErrorResponse) => {
+            this.notify(err.error?.message || 'Erreur lors de la clôture du service.');
+            }
         });
     }
     protected openAccept(idReponse: number) {

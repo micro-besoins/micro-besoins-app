@@ -102,10 +102,16 @@ export class MyNeedsPage {
     return new Intl.NumberFormat('fr-MU').format(Number(value));
   }
   protected statusLabel(status: string | null): string {
-    return status === 'EN_ATTENTE' ? 'En attente de validation' : status === 'REFUSE' ? 'Refusé' : 'Publié';
+    if (status === 'EN_ATTENTE') return 'En attente de validation';
+    if (status === 'REFUSE') return 'Refusé';
+    if (status === 'TERMINE') return 'Terminé';
+    return 'Publié';
   }
   protected statusClass(status: string | null): string {
-    return status === 'EN_ATTENTE' ? 'attente' : status === 'REFUSE' ? 'refuse' : 'valide';
+    if (status === 'EN_ATTENTE') return 'attente';
+    if (status === 'REFUSE') return 'refuse';
+    if (status === 'TERMINE') return 'termine';
+    return 'valide';
   }
   protected categoryIcon(category: string | null): string {
     const key = (category ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

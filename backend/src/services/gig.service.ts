@@ -169,10 +169,23 @@ export async function findGigById(id: number, viewerId: number | null) {
 
 export async function findGigsByOwner(ownerId: number) {
   const capabilities = await getCapabilities();
+  const category = capabilities.hasCategory ? 'g.categorie' : 'NULL::text';
+  const location = capabilities.hasLocation ? 'g.localite' : 'NULL::text';
+  const requestedDate = capabilities.hasRequestedDate ? 'g.dateSouhaitee' : 'NULL::timestamp';
   const { rows } = await pool.query(
-    `${gigSelect(capabilities)}
+    `SELECT g.idgig AS id, g.titre AS title, g.description, g.budget::text AS budget,
+            g.datepublication AS "publishedAt", g.statusgig AS status,
+            ${category} AS category, ${location} AS location, ${requestedDate} AS "requestedAt",
+            u.idutilisateur AS "ownerId", u.nom AS "ownerLastName", u.prenom AS "ownerFirstName",
+            (SELECT COUNT(*)::int FROM reponse r WHERE r.idgig = g.idgig) AS "proposalCount",
+            p.prenom AS "providerFirstName", 
+            p.nom AS "providerLastName", 
+            r.prixpropose::text AS "agreedPrice"
+     FROM gig g
+     JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
+     LEFT JOIN reponse r ON r.idgig = g.idgig AND r.statusreponse = 'ACCEPTE'
+     LEFT JOIN utilisateur p ON p.idutilisateur = r.idutilisateur
      WHERE g.idutilisateur = $1
-     GROUP BY g.idgig, u.idutilisateur
      ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC`,
     [ownerId]
   );
@@ -284,6 +297,11 @@ export async function terminerProposition(idReponse: number, ownerId: number) {
     if (completed.rowCount === 0) throw new Error('Seule une proposition acceptée peut être terminée.');
 
     await client.query(
+      `UPDATE gig SET statusgig = 'TERMINE' WHERE idgig = $1`,
+      [response.idgig]
+    );
+    
+    await client.query(
       `INSERT INTO paiement (montant, methode, datepaiement, statuspaiement, idutilisateur, idreponse, idgig)
        SELECT r.prixpropose, 'plateforme', NOW(), 'REUSSI', r.idutilisateur, r.idreponse, r.idgig
          FROM reponse r
@@ -315,7 +333,7 @@ export async function createProposition(gigId: number, userId: number, message: 
     if (gig.status !== GIG_STATUS.VALIDATED) throw new Error('Ce besoin n’est pas disponible pour les propositions.');
 
     const existing = await client.query(
-      'SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 LIMIT 1',
+      "SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 AND statusreponse IN ('EN_ATTENTE', 'ACCEPTE') LIMIT 1",
       [gigId, userId],
     );
     if ((existing.rowCount ?? 0) > 0) throw new Error('Vous avez déjà envoyé une proposition pour ce besoin.');

@@ -42,7 +42,7 @@
               <span><ng-icon name="lucideCalendarDays" /> {{ formatDate(gig.publishedAt) }}</span>
             </div>
 
-            @if (gig.status === 'VALIDE') {
+            @if (gig.status === 'VALIDE' || gig.status === 'TERMINE') {
               <div class="row-footer">
                 @if (provider(gig); as name) {
                   <p>Prestataire retenu : <strong>{{ name }}</strong> · Montant convenu : <strong>Rs {{ formatBudget(gig.agreedPrice) }}</strong></p>
