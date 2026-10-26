@@ -1,0 +1,192 @@
+/* Conteneur principal */
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* En-tête de page */
+.page-intro {
+  margin-bottom: 40px;
+}
+.eyebrow {
+  color: #0756c7;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 8px;
+}
+h1 {
+  font-size: 38px;
+  color: #08295d;
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+.page-intro p {
+  color: #5e7494;
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Liste des besoins */
+.need-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Carte horizontale */
+.need-row {
+  background: #fff;
+  border: 1px solid #dfe6f1;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+/* En-tête de la carte (Catégorie + Statut) */
+.row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.category-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.category {
+  color: #0756c7;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Badges de statut */
+.status {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.status.valide { background: #e8f8ee; color: #078050; }
+.status.attente { background: #fff3d9; color: #805300; }
+.status.refuse { background: #fdecec; color: #b42318; }
+
+/* Titre et Avatar */
+.row-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  color: #08295d;
+  margin: 0;
+  font-weight: 500;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #eaf2ff;
+  color: #0756c7;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Métadonnées (Lieu, Date) */
+.row-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #64748b;
+  font-size: 14px;
+  margin-left: 52px; /* Pour s'aligner avec le titre qui a un avatar */
+}
+.row-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Pied de carte (Prestataire) */
+.row-footer {
+  margin-left: 52px;
+  color: #64748b;
+  font-size: 14px;
+}
+.row-footer strong {
+  color: #0f172a;
+}
+
+/* Boutons d'action (à droite) */
+.row-actions {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.outline {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid #c7d8f0;
+  background: #fff;
+  color: #0752bc;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.outline:hover { background: #f4f7fc; }
+.text-danger {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.text-danger:hover { color: #b42318; }
+
+/* États (vide, erreur) */
+.state {
+  padding: 40px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #dfe6f1;
+  border-radius: 12px;
+  color: #64748b;
+}
+.publish {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #1767df;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+  .row-actions {
+    position: static;
+    transform: none;
+    margin-top: 16px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .row-meta, .row-footer {
+    margin-left: 0;
+  }
+}

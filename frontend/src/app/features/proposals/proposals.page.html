@@ -1,31 +1,4 @@
-<header class="topbar">
-  <a routerLink="/" class="brand"><span class="logo">m</span><span>Micro-Besoins</span></a>
-  <nav aria-label="Navigation principale">
-    <a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a>
-    <a routerLink="/mes-propositions" class="active" aria-current="page">Mes propositions</a><a routerLink="/messages">Messages</a>
-  </nav>
-  <div class="header-actions">
-    <div class="popover-anchor">
-      <button type="button" class="notification" aria-label="Notifications des propositions" [attr.aria-expanded]="notificationsOpen()" aria-controls="notifications" (click)="toggleNotifications()">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-        @if (updates().length) { <b>{{ updates().length }}</b> }
-      </button>
-      @if (notificationsOpen()) {
-        <section class="popover notifications" id="notifications" aria-label="Notifications"><strong>Vos propositions</strong>
-          @for (proposal of updates(); track proposal.id) { <button type="button" (click)="open('need', proposal)">{{ proposal.title }}<small>{{ statusLabel(proposal.status) }}</small></button> }
-          @empty { <p>Aucune nouvelle réponse à vos propositions.</p> }
-        </section>
-      }
-    </div>
-    <a routerLink="/publier-un-besoin" class="publish"><span aria-hidden="true">＋</span> Publier un besoin</a>
-    <div class="popover-anchor">
-      <button type="button" class="profile-button" [attr.aria-expanded]="profileOpen()" aria-controls="profile-menu" (click)="toggleProfile()" aria-label="Ouvrir le menu du compte">
-        <span class="avatar">{{ initials(user?.prenom, user?.nom) }}</span><strong>{{ user?.prenom }}</strong>
-      </button>
-      @if (profileOpen()) { <div class="popover" id="profile-menu"><strong>{{ user?.prenom }} {{ user?.nom }}</strong>@if (user?.role === 'ADMIN') { <a routerLink="/admin">Tableau de bord</a> }<button type="button" (click)="logout()">Se déconnecter</button></div> }
-    </div>
-  </div>
-</header>
+<app-header />
 
 <main>
   <p class="eyebrow">Votre activité</p>

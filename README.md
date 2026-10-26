@@ -50,6 +50,8 @@ backend/src/db/ajout-rdv-table-reponse.sql
 backend/src/db/ajout-notification.sql
 backend/src/db/ajout-messagerie.sql
 backend/src/db/ajout-signalement-message.sql
+backend/src/db/ajout-profil-public.sql
+backend/src/db/ajout-profil.sql
 backend/src/db/ajout-frais-publication-existants.sql
 ```
 
@@ -120,6 +122,8 @@ CORS_ORIGIN=http://localhost:4200
 Sans cette migration, l'API du profil peut renvoyer une erreur et la page ne peut pas charger les données. Le script peut être relancé sans supprimer les données existantes ; il n'ajoute pas de faux services ni d'avis. Un profil sans activité affiche les messages prévus à cet effet.
 
 Pour plus de détails, consultez [la documentation du profil public](backend/PROFIL-PUBLIC.md).
+
+Pour activer aussi **Mon profil**, exécutez ensuite `backend/src/db/ajout-profil.sql`, puis ouvrez `/mon-profil` depuis le menu du compte. Cette migration ajoute uniquement le nom public et peut être relancée sans perdre de données.
 
 Dans PostgreSQL ou dans pgAdmin, exécuter :
 

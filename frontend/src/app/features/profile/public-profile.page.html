@@ -2,7 +2,7 @@
   <a routerLink="/" class="brand"><span class="logo">m</span>Micro-Besoins</a>
   <nav aria-label="Navigation principale"><a routerLink="/">Explorer</a><a routerLink="/mes-besoins">Mes besoins</a><a routerLink="/mes-propositions">Mes propositions</a><a routerLink="/messages">Messages</a></nav>
   <div class="actions"><a class="publish" routerLink="/publier-un-besoin">＋ <span>Publier un besoin</span></a>
-    @if (user; as current) { <a class="account" [routerLink]="['/profil', current.id]"><span class="avatar small">{{ initials(current.prenom, current.nom) }}</span><strong>{{ current.prenom }}</strong></a> }
+    @if (user; as current) { <a class="account" routerLink="/mon-profil"><span class="avatar small">{{ initials(current.prenom, current.nom) }}</span><strong>{{ current.prenom }}</strong></a> }
     @else { <a routerLink="/auth/login">Se connecter</a> }
   </div>
 </header>
@@ -13,12 +13,14 @@
   @else if (profile(); as person) {
     <section class="identity" aria-labelledby="profile-name">
       <span class="avatar large" aria-hidden="true">{{ initials(person.firstName, person.lastName) }}</span>
-      <div><p class="eyebrow">Profil public</p><h1 id="profile-name">{{ person.firstName }} {{ person.lastName }}</h1>
+      <div><p class="eyebrow">Profil public</p><h1 id="profile-name">{{ person.publicName }}</h1>
         <p class="location">@if (person.location) { <span><ng-icon name="lucideMapPin" aria-hidden="true"/> {{ person.location }}</span> }@if (person.location && person.joinedAt) { <span> · </span> }@if (person.joinedAt) { <span>Membre depuis {{ date(person.joinedAt, true) }}</span> }</p>
         @if (person.biography) { <p class="biography">{{ person.biography }}</p> }
         <div class="skills">@for (skill of person.skills; track skill) { <span>{{ skill }}</span> }</div>
       </div>
+      @if (editable() && user?.id === person.id) { <button type="button" class="publish edit-profile" (click)="editRequested.emit()">Modifier mon profil</button> }
     </section>
+    <ng-content/>
     <section class="stats" aria-label="Statistiques du profil">
       <div><strong>{{ person.provider.completedCount }}</strong><span>Services accomplis</span></div>
       <div><strong>{{ person.requester.completedCount }}</strong><span>Besoins terminés</span></div>

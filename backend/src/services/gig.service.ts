@@ -167,6 +167,18 @@ export async function findGigById(id: number, viewerId: number | null) {
   return { ...gig, isOwner, payments, proposals };
 }
 
+export async function findGigsByOwner(ownerId: number) {
+  const capabilities = await getCapabilities();
+  const { rows } = await pool.query(
+    `${gigSelect(capabilities)}
+     WHERE g.idutilisateur = $1
+     GROUP BY g.idgig, u.idutilisateur
+     ORDER BY g.datepublication DESC NULLS LAST, g.idgig DESC`,
+    [ownerId]
+  );
+  return rows;
+}
+
 export async function reportGig(id: number, reporterId: number, reason: string) {
   const { rows: gigs } = await pool.query<{ status: string }>(
     `SELECT statusgig AS status FROM gig WHERE idgig = $1`,

@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench } from '@ng-icons/lucide';
 import { isAdminUser } from '../auth/admin-role';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
+import { HeaderComponent } from '../../shared/layout/header/header.component';
 
 interface Gig {
   id: number;
@@ -28,7 +29,7 @@ interface FilterOptions { categories: string[]; locations: string[]; budgets: st
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, NgIcon],
+  imports: [FormsModule, RouterLink, NgIcon, HeaderComponent],
   providers: [provideIcons({ lucideBell, lucideBookOpen, lucideCalendarDays, lucideCoins, lucideMapPin, lucideSparkles, lucideSprout, lucideWrench })],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.css', './home-proposal-modal.css', './home-proposal-success.css'],

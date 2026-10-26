@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBell, lucideFlag, lucideMessageCircle, lucidePlus, lucideSend } from '@ng-icons/lucide';
 import { AuthService, RegisteredUser } from '../auth/auth.service';
+import { HeaderComponent } from '../../shared/layout/header/header.component';
 
 interface Conversation {
   id: number;
@@ -39,7 +40,7 @@ interface ConversationDetail {
 @Component({
   selector: 'app-messages-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, NgIcon],
+  imports: [FormsModule, NgIcon, HeaderComponent],
   providers: [provideIcons({ lucideBell, lucideFlag, lucideMessageCircle, lucidePlus, lucideSend })],
   templateUrl: './messages.page.html',
   styleUrls: ['./messages.page.css', '../gigs/session-actions.css'],

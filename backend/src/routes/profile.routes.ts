@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { findPublicProfile } from '../services/profile.service';
+import { authenticate } from '../middleware/auth.middleware';
+import { readProfile, saveProfile } from '../controllers/profile.controller';
 
 const router = Router();
+router.get('/me', authenticate, readProfile);
+router.put('/me', authenticate, saveProfile);
 router.get('/:id/public', async (req, res, next) => {
   try {
     const raw = String(req.params.id);
