@@ -56,6 +56,10 @@ export class AuthService {
     try { return JSON.parse(raw) as RegisteredUser; } catch { return null; }
   }
 
+  updateCurrentUser(user: RegisteredUser): void {
+    localStorage.setItem('micro-besoins-user', JSON.stringify(user));
+  }
+
   logout(): void {
     localStorage.removeItem('micro-besoins-token');
     localStorage.removeItem('micro-besoins-user');

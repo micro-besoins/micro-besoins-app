@@ -3,6 +3,7 @@ import { adminGuard } from './features/auth/admin.guard';
 import { authGuard } from './features/auth/auth.guard';
 
 export const routes: Routes = [
+  { path: 'mon-profil', canActivate: [authGuard], title: 'Mon profil · Micro-Besoins', loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage) },
   { path: 'profil/:id', title: 'Profil public · Micro-Besoins', loadComponent: () => import('./features/profile/public-profile.page').then((m) => m.PublicProfilePage) },
   { path: '', title: 'Micro-Besoins', loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage) },
   { path: 'publier-un-besoin', canActivate: [authGuard], title: 'Publier un besoin', loadComponent: () => import('./features/gigs/publish/publish-gig.page').then((m) => m.PublishGigPage) },

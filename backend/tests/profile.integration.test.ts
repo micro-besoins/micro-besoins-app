@@ -32,9 +32,12 @@ describe('Profil public : données PostgreSQL et API HTTP', { skip: !connectionS
     appPool = pool;
     await pool.query(await readFile(new URL('../../MicroBesoins.sql', import.meta.url), 'utf8'));
     await pool.query('ALTER TABLE gig ADD COLUMN categorie VARCHAR(50); ALTER TABLE gig ADD COLUMN localite VARCHAR(80); ALTER TABLE gig ADD COLUMN dateSouhaitee TIMESTAMP;');
+    await pool.query('ALTER TABLE paiement ADD COLUMN idgig INT REFERENCES gig(idgig);');
+    await pool.query(await readFile(new URL('../src/db/ajout-rdv-table-reponse.sql', import.meta.url), 'utf8'));
     const migration = await readFile(new URL('../src/db/ajout-profil-public.sql', import.meta.url), 'utf8');
     await pool.query(migration);
     await pool.query(migration); // Migration réexécutable.
+    await pool.query(await readFile(new URL('../src/db/ajout-profil.sql', import.meta.url), 'utf8'));
     const { rows } = await pool.query(`INSERT INTO utilisateur (nom, prenom, email, motdepasse, roleutilisateur)
       VALUES ('Ram dass', 'Kevin', 'private-provider@example.com', 'private-hash', 'prospect'),
       ('Test', 'Sophie', 'private-requester@example.com', 'private-hash', 'demandeur'),
@@ -82,7 +85,7 @@ describe('Profil public : données PostgreSQL et API HTTP', { skip: !connectionS
 
   it('renvoie seulement les champs publics, sans authentification', async () => {
     const result = await profile(providerId);
-    assert.deepEqual(Object.keys(result).sort(), ['id', 'firstName', 'lastName', 'location', 'biography', 'joinedAt', 'skills', 'provider', 'requester', 'activities'].sort());
+    assert.deepEqual(Object.keys(result).sort(), ['id', 'firstName', 'lastName', 'publicName', 'location', 'biography', 'joinedAt', 'skills', 'provider', 'requester', 'activities'].sort());
     assert.equal(result.location, 'Moka');
     assert.deepEqual(result.skills, ['Aide informatique']);
     assert.doesNotMatch(JSON.stringify(result), /private-|email|motdepasse|budget|Description privée/);
@@ -124,5 +127,16 @@ describe('Profil public : données PostgreSQL et API HTTP', { skip: !connectionS
     assert.equal(ownerBody.proposals[0].ownerId, providerId);
     const visitor = await fetch(`${base}/api/gigs/${visibleId}`, { headers: headers(emptyId) });
     assert.deepEqual((await visitor.json() as any).proposals, []);
+  });
+  it('conserve les services et avis avec les statuts du parcours actuel', async () => {
+    await appPool.query("UPDATE gig SET statusgig = 'VALIDE' WHERE idgig = $1", [completedId]);
+    await appPool.query("UPDATE reponse SET statusreponse = 'TERMINE' WHERE idgig = $1 AND idutilisateur = $2", [completedId, providerId]);
+    const provider = await profile(providerId);
+    assert.deepEqual(provider.provider, { completedCount: 2, reviewCount: 2, averageRating: 4 });
+    const requester = await profile(requesterId);
+    assert.deepEqual(requester.requester, { completedCount: 2, reviewCount: 1, averageRating: 4 });
+    await appPool.query("UPDATE gig SET statusgig = 'TERMINE' WHERE idgig = $1", [completedId]);
+    await appPool.query("UPDATE reponse SET statusreponse = 'ACCEPTE' WHERE idgig = $1 AND idutilisateur = $2", [completedId, providerId]);
+    assert.equal((await profile(providerId)).provider.completedCount, 2);
   });
 });
