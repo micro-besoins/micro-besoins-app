@@ -26,6 +26,7 @@
       <strong class="user-name">{{ user()?.prenom }}</strong>
       @if (profileOpen()) {
         <div class="profile-menu">
+          <a routerLink="/mon-profil">Mon profil</a>
           @if (isAdmin) {
             <button type="button" (click)="goToAdmin()">Tableau de bord</button>
           }

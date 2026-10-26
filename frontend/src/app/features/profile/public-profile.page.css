@@ -119,3 +119,7 @@ blockquote { margin:10px 0 0; color:#667997; font-size:17px; line-height:1.5; ov
   nav a { font-size:11px; }
   h1 { font-size:29px; }
 }
+
+.identity > div { flex:1; }.edit-profile { flex-shrink:0; }
+@media(max-width:1200px) { .identity { flex-wrap:wrap; }.identity > div { flex-basis:calc(100% - 122px); }.edit-profile { margin-left:122px; } }
+@media(max-width:720px) { .edit-profile { width:100%; justify-content:center; margin-left:0; } }

@@ -1,0 +1,25 @@
+@if (loading()) { <main><p class="state" role="status">Chargement de votre profil…</p></main> }
+@else if (error()) { <main><div class="state error" role="alert">{{ error() }} <button class="retry" (click)="load()">Réessayer</button></div></main> }
+@else if (profile(); as person) {
+  <app-public-profile [profileId]="person.id" [editable]="true" [refreshVersion]="refreshVersion()" (editRequested)="edit()">
+    @if (success()) { <p class="notice" role="status">{{ success() }}</p> }
+    <section class="account-card" aria-labelledby="account-title"><div><h2 id="account-title">Informations du compte</h2><p>Ces informations sont visibles uniquement par vous.</p></div><dl><div><dt>Prénom</dt><dd>{{ person.prenom }}</dd></div><div><dt>Nom</dt><dd>{{ person.nom }}</dd></div><div><dt>Adresse e-mail</dt><dd>{{ person.email }}</dd></div></dl></section>
+  </app-public-profile>
+}
+<dialog #editDialog aria-labelledby="edit-title" (cancel)="close($event)" (click)="backdrop($event)">
+  <form #profileForm="ngForm" (ngSubmit)="save(profileForm)">
+    <div class="dialog-header"><h2 id="edit-title">Modifier mon profil</h2><button type="button" class="close" aria-label="Fermer" [disabled]="saving()" (click)="close()"><ng-icon name="lucideX"/></button></div>
+    <div class="dialog-body">
+      <label for="public-name">Nom public <span>*</span></label><input id="public-name" name="publicName" [(ngModel)]="draft.publicName" required maxlength="80" pattern=".*\S.*" autocomplete="nickname" autofocus #publicName="ngModel" [attr.aria-invalid]="publicName.touched && publicName.invalid" aria-describedby="public-name-error">
+      @if (publicName.touched && publicName.invalid) { <p id="public-name-error" class="field-error">Renseignez un nom public (80 caractères maximum).</p> }
+      <label for="location">Localité <span>*</span></label><input id="location" name="location" [(ngModel)]="draft.location" required maxlength="80" pattern=".*\S.*" autocomplete="address-level2" #location="ngModel" [attr.aria-invalid]="location.touched && location.invalid" aria-describedby="location-error">
+      @if (location.touched && location.invalid) { <p id="location-error" class="field-error">Renseignez votre localité (80 caractères maximum).</p> }
+      <label for="bio">Présentation</label><textarea id="bio" name="bio" [(ngModel)]="draft.bio" maxlength="1000" rows="4"></textarea>
+      <p class="privacy">Votre email, téléphone, adresse précise et informations bancaires ne sont jamais publics.</p>
+      <details><summary>Modifier les informations privées du compte</summary><div class="private-fields"><label for="first-name">Prénom <span>*</span></label><input id="first-name" name="prenom" [(ngModel)]="draft.prenom" required maxlength="20" pattern=".*\S.*" autocomplete="given-name"><label for="last-name">Nom <span>*</span></label><input id="last-name" name="nom" [(ngModel)]="draft.nom" required maxlength="20" pattern=".*\S.*" autocomplete="family-name"><label for="email">Adresse e-mail <span>*</span></label><input id="email" type="email" name="email" [(ngModel)]="draft.email" required email maxlength="100" autocomplete="email"><p class="privacy">Nom et prénom : 20 caractères maximum. Renseignez une adresse e-mail valide.</p></div></details>
+      @if (profileForm.submitted && profileForm.invalid) { <p class="field-error" role="alert">Vérifiez les champs obligatoires et les informations privées du compte.</p> }
+      @if (saveError()) { <p class="field-error" role="alert">{{ saveError() }}</p> }
+    </div>
+    <div class="dialog-footer"><button type="button" class="cancel" [disabled]="saving()" (click)="close()">Annuler</button><button type="submit" class="publish" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button></div>
+  </form>
+</dialog>
