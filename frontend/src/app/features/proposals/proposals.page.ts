@@ -63,7 +63,7 @@ export class ProposalsPage {
   protected load(): void {
     this.loading.set(true);
     this.error.set('');
-    this.http.get<{ proposals: Proposal[] }>(this.api).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.http.get<{ proposals: Proposal[] }>(this.api, { headers: this.headers() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ proposals }) => { this.proposals.set(proposals); this.loading.set(false); },
       error: () => { this.error.set('Impossible de charger vos propositions. Veuillez réessayer.'); this.loading.set(false); },
     });
@@ -81,7 +81,10 @@ export class ProposalsPage {
     this.dialog.nativeElement.showModal();
     if (kind !== 'withdraw') this.loadDetail();
   }
-
+  private headers() {
+    return { Authorization: `Bearer ${this.auth.token()}` };
+  }
+  
   protected loadDetail(): void {
     const proposal = this.selected();
     if (!proposal) return;
@@ -89,12 +92,12 @@ export class ProposalsPage {
     this.dialogError.set('');
     const version = ++this.detailVersion;
     if (this.dialogKind() === 'need') {
-      this.http.get<{ gig: Need }>(`${this.api}/${proposal.id}/need`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      this.http.get<{ gig: Need }>(`${this.api}/${proposal.id}/need`, { headers: this.headers() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: ({ gig }) => { if (version === this.detailVersion) { this.need.set(gig); this.dialogLoading.set(false); } },
         error: () => { if (version === this.detailVersion) { this.dialogError.set('Impossible de charger le besoin associé.'); this.dialogLoading.set(false); } },
       });
     } else {
-      this.http.get<{ profile: OwnerProfile }>(`${this.api}/${proposal.id}/profile`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      this.http.get<{ profile: OwnerProfile }>(`${this.api}/${proposal.id}/profile`, { headers: this.headers() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: ({ profile }) => { if (version === this.detailVersion) { this.ownerProfile.set(profile); this.dialogLoading.set(false); } },
         error: () => { if (version === this.detailVersion) { this.dialogError.set('Impossible de charger ce profil.'); this.dialogLoading.set(false); } },
       });
@@ -106,7 +109,7 @@ export class ProposalsPage {
     if (!proposal || this.saving()) return;
     this.saving.set(true);
     this.dialogError.set('');
-    this.http.patch<{ proposal: { id: number; status: string } }>(`${this.api}/${proposal.id}/withdraw`, {}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.http.patch<{ proposal: { id: number; status: string } }>(`${this.api}/${proposal.id}/withdraw`, {}, { headers: this.headers() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ proposal: updated }) => {
         this.proposals.update(items => items.map(item => item.id === updated.id ? { ...item, status: updated.status } : item));
         this.saving.set(false);
