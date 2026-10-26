@@ -81,7 +81,7 @@ function gigSelect(capabilities: GigCapabilities): string {
             g.datepublication AS "publishedAt", g.statusgig AS status,
             ${category} AS category, ${location} AS location, ${requestedDate} AS "requestedAt",
             u.idutilisateur AS "ownerId", u.nom AS "ownerLastName", u.prenom AS "ownerFirstName",
-            COUNT(r.idreponse)::int AS "proposalCount"
+            COUNT(r.idreponse) FILTER (WHERE COALESCE(r.statusreponse, 'EN_ATTENTE') <> 'RETIREE')::int AS "proposalCount"
      FROM gig g
      LEFT JOIN utilisateur u ON u.idutilisateur = g.idutilisateur
      LEFT JOIN reponse r ON r.idgig = g.idgig`;
@@ -136,9 +136,11 @@ export async function findGigById(id: number, viewerId: number | null) {
  
   const payments = isOwner
     ? (await pool.query<{ amount: string; status: string | null; paidAt: string | null; responseId: number | null }>(
-      `SELECT montant::text AS amount, statuspaiement AS status, datepaiement AS "paidAt", idreponse AS "responseId"
-         FROM paiement
-        WHERE idgig = $1
+      `SELECT p.montant::text AS amount, p.statuspaiement AS status, p.datepaiement AS "paidAt", p.idreponse AS "responseId"
+         FROM paiement p
+         LEFT JOIN reponse r ON r.idreponse = p.idreponse
+        WHERE p.idgig = $1
+          AND (p.idreponse IS NULL OR r.statusreponse = 'TERMINE')
         ORDER BY idpaiement DESC`,
       [id],
     )).rows
@@ -158,6 +160,7 @@ export async function findGigById(id: number, viewerId: number | null) {
         FROM reponse r
         JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
         WHERE r.idgig = $1
+          AND COALESCE(r.statusreponse, 'EN_ATTENTE') <> 'RETIREE'
         ORDER BY r.datereponse DESC`,
       [id]
     );
@@ -315,7 +318,12 @@ export async function createProposition(gigId: number, userId: number, message: 
     if (gig.status !== GIG_STATUS.VALIDATED) throw new Error('Ce besoin n’est pas disponible pour les propositions.');
 
     const existing = await client.query(
-      'SELECT 1 FROM reponse WHERE idgig = $1 AND idutilisateur = $2 LIMIT 1',
+      `SELECT 1
+         FROM reponse
+        WHERE idgig = $1
+          AND idutilisateur = $2
+          AND COALESCE(statusreponse, 'EN_ATTENTE') <> 'RETIREE'
+        LIMIT 1`,
       [gigId, userId],
     );
     if ((existing.rowCount ?? 0) > 0) throw new Error('Vous avez déjà envoyé une proposition pour ce besoin.');

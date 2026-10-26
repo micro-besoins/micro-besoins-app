@@ -56,7 +56,9 @@ export async function findGigProposals(gigId: number) {
     `SELECT r.idreponse AS id, r.contenu AS content, r.statusreponse AS status,
       u.idutilisateur AS "ownerId", u.prenom AS "firstName", u.nom AS "lastName"
      FROM reponse r JOIN utilisateur u ON u.idutilisateur = r.idutilisateur
-     WHERE r.idgig = $1 ORDER BY r.datereponse DESC NULLS LAST, r.idreponse DESC`, [gigId]);
+     WHERE r.idgig = $1
+       AND COALESCE(r.statusreponse, 'EN_ATTENTE') <> 'RETIREE'
+     ORDER BY r.datereponse DESC NULLS LAST, r.idreponse DESC`, [gigId]);
   return rows;
 }
 

@@ -69,6 +69,10 @@ export class ProposalsPage {
     });
   }
 
+  protected consultNeed(proposal: Proposal): void {
+    void this.router.navigate(['/besoins', proposal.gigId]);
+  }
+
   protected open(kind: DialogKind, proposal: Proposal): void {
     this.selected.set(proposal);
     this.dialogKind.set(kind);
