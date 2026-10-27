@@ -69,7 +69,7 @@
     } @else { 
       <div class="cards">
         @for (gig of gigs(); track gig.id) { 
-          <article class="card">
+          <article class="card" role="link" tabindex="0" (click)="openDetail(gig.id)" (keydown.enter)="openDetail(gig.id)" (keydown.space)="$event.preventDefault(); openDetail(gig.id)" [attr.aria-label]="'Consulter le besoin : ' + gig.title">
             
             <div class="card-top">
               <div class="category-wrap">
@@ -106,13 +106,13 @@
               <span class="avatar small">{{ initials(gig.ownerFirstName, gig.ownerLastName) }}</span>
               <span>
                 <small>Publié par</small>
-                <a [routerLink]="['/profil', gig.ownerId]">{{ owner(gig) }}</a>
+                <a [routerLink]="['/profil', gig.ownerId]" (click)="$event.stopPropagation()">{{ owner(gig) }}</a>
               </span>
             </div>
 
             <div class="card-actions">
               @if (gig.ownerId === user()?.id) { 
-                <a class="primary detail-link"  style="color: white;" [routerLink]="['/besoins', gig.id, 'propositions']">
+                <a class="primary detail-link" style="color: white;" [routerLink]="['/besoins', gig.id, 'propositions']" (click)="$event.stopPropagation()">
                   Voir les propositions ({{ gig.proposalCount }})
                 </a>
               } @else { 
@@ -120,7 +120,7 @@
                   Proposer mes services
                 </button>
               }
-              <a class="outline detail-link" [routerLink]="['/besoins', gig.id]">Voir le détail</a>
+              <a class="outline detail-link" [routerLink]="['/besoins', gig.id]" (click)="$event.stopPropagation()">Voir le détail</a>
             </div>
 
           </article> 

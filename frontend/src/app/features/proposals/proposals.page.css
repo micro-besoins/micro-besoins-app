@@ -10,114 +10,40 @@ button { font: inherit; cursor: pointer; }
 button:disabled { cursor: wait; opacity: .6; }
 a { text-decoration: none; color: inherit; }
 
-/* ==========================================================================
-   MODALE DE RETRAIT (correspondance maquette)
-   ========================================================================== */
-
-/* Le fond sombre flouté */
-dialog::backdrop {
-  background: rgba(8, 31, 67, 0.45);
-  backdrop-filter: blur(3px);
-}
-
-/* La boîte de la modale */
 dialog {
-  width: min(580px, calc(100% - 32px));
-  max-height: calc(100dvh - 40px);
-  padding: 28px;
-  border: 1px solid #dce4ef;
-  border-radius: 16px;
-  color: #06265a;
+  width: min(100% - 32px, 620px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 18px;
   background: #fff;
-  box-shadow: 0 20px 80px rgba(6, 38, 90, 0.2);
-  font: inherit;
-  line-height: 1.65;
+  color: #102d5c;
+  box-shadow: 0 28px 80px rgba(6, 29, 68, .34);
 }
 
-/* Le titre et le bouton fermer */
-.dialog-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 22px;
-}
+dialog::backdrop { background: rgba(8, 31, 67, .52); backdrop-filter: blur(3px); }
+.dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:24px 28px; border-bottom:1px solid #dfe6f1; }
+.dialog-heading h2 { margin:0; font-size:25px; line-height:1.2; font-weight:700; }
+.close { display:grid; place-items:center; width:36px; height:36px; flex:0 0 auto; padding:0; border:0; border-radius:9px; background:transparent; color:#667996; font-size:28px; line-height:1; }
+.close:hover { background:#edf3fc; color:#075de1; }
+dialog > p, dialog > .profile-detail, dialog > dl, dialog > .your-proposal { margin-left:28px; margin-right:28px; }
+dialog > p { color:#536b8d; font-size:16px; line-height:1.55; }
+dialog > p:first-of-type { margin-top:24px; }
+.muted { color:#667996 !important; }
+.dialog-error { color:#b42318 !important; }
+dialog dl { display:grid; margin-top:18px; margin-bottom:20px; }
+dialog dl > div { display:flex; justify-content:space-between; gap:22px; padding:14px 0; border-top:1px solid #e4ebf4; }
+dialog dt { color:#6b7d98; } dialog dd { margin:0; color:#102d5c; font-weight:700; text-align:right; }
+.your-proposal { margin-top:22px; margin-bottom:0; padding:18px; border-radius:12px; background:#f3f6fb; }
+.your-proposal h3 { margin:0 0 10px; font-size:17px; }.your-proposal .need-description { white-space:pre-wrap; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:12px; margin-top:26px; padding:20px 28px; border-top:1px solid #dfe6f1; background:#fafcff; }
+.dialog-actions .outline, .dialog-actions .danger { min-height:46px; padding-inline:20px; }
 
-.dialog-heading h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #0a2755;
-}
-
-.close {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border: 1px solid #dce4ef;
-  border-radius: 8px;
-  color: #526580;
-  background: transparent;
-  font-size: 20px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-
-.close:hover {
-  background: #f1f5fa;
-}
-
-/* Le texte de la modale */
-dialog p {
-  margin: 0 0 16px;
-  color: #4f6686;
-  font-size: 16px;
-}
-
-dialog p strong {
-  color: #0a2755;
-}
-
-.muted {
-  color: #647794;
-  font-size: 15px;
-}
-
-/* Les boutons en bas */
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 26px;
-}
-
-.dialog-actions .outline {
-  min-height: 48px;
-  padding: 0 24px;
-  border: 1px solid #1767df;
-  background: #fff;
-  color: #1767df;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.dialog-actions .outline:hover {
-  background: #f4f8ff;
-}
-
-.dialog-actions .danger {
-  min-height: 48px;
-  padding: 0 24px;
-  border: 1px solid #c43d4c;
-  background: #c43d4c;
-  color: #fff;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.dialog-actions .danger:hover {
-  background: #b83140;
+@media (max-width: 560px) {
+  dialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); border-radius:15px; }
+  .dialog-heading { padding:19px 20px; }.dialog-heading h2 { font-size:21px; }
+  dialog > p, dialog > .profile-detail, dialog > dl, dialog > .your-proposal { margin-left:20px; margin-right:20px; }
+  .dialog-actions { flex-direction:column-reverse; padding:16px 20px; }.dialog-actions .outline, .dialog-actions .danger { width:100%; }
 }

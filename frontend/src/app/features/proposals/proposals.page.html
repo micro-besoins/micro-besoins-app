@@ -20,7 +20,7 @@
           </div>
           <div class="rate"><span>Votre tarif</span><strong>@if (proposal.amount !== null) { Rs {{ proposal.amount | number:'1.0-2' }} } @else { Non renseigné }</strong></div>
           <div class="card-actions">
-            <button type="button" class="outline" (click)="open('need', proposal)" [attr.aria-label]="'Consulter le besoin : ' + proposal.title">Consulter le besoin</button>
+            <button type="button" class="outline" (click)="consultNeed(proposal)" [attr.aria-label]="'Consulter le besoin : ' + proposal.title">Consulter le besoin</button>
             <a class="text-button" [routerLink]="['/profil', 1]" style="text-decoration: none;">Voir le profil</a>
             @if (proposal.status === 'EN_ATTENTE') { <button type="button" class="danger" (click)="open('withdraw', proposal)" [attr.aria-label]="'Retirer la proposition pour ' + proposal.title">Retirer</button> }
           </div>
