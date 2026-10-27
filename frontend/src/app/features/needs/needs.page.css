@@ -77,7 +77,10 @@ h1 {
 .status.valide { background: #e8f8ee; color: #078050; }
 .status.attente { background: #fff3d9; color: #805300; }
 .status.refuse { background: #fdecec; color: #b42318; }
-
+.status.termine {
+  background: #e0e7ff;
+  color: #3730a3;
+}
 /* Titre et Avatar */
 .row-title {
   display: flex;
